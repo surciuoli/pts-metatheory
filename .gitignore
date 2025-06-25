@@ -1,0 +1,6 @@
+
+*.agdai
+src/.DS_Store
+*.agda~
+src/PTS/.DS_Store
+.DS_Store
