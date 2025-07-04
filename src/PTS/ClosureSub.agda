@@ -1,20 +1,20 @@
+open import Data.Empty
+open import Data.List 
+open import Data.Product
+open import Data.Sum
+open import Relation.Nullary
+open import Relation.Binary.PropositionalEquality as PEq 
+open import Data.List.Membership.Propositional
+open import Data.List.Relation.Unary.Any
+open import Data.List.Relation.Binary.Subset.Propositional
+open import Data.List.Relation.Binary.Subset.Propositional.Properties
+open import Data.Nat hiding (_≟_)
+open import Relation.Binary.Construct.Closure.ReflexiveTransitive
+import Relation.Binary.Reasoning.Preorder as PreR
+
 open import Stoughton.Var
  
 module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
-
-  open import Data.Empty
-  open import Data.List 
-  open import Data.Product
-  open import Data.Sum
-  open import Relation.Nullary
-  open import Relation.Binary.PropositionalEquality as PEq 
-  open import Data.List.Membership.Propositional
-  open import Data.List.Relation.Unary.Any
-  open import Data.List.Relation.Binary.Subset.Propositional
-  open import Data.List.Relation.Binary.Subset.Propositional.Properties
-  open import Data.Nat hiding (_≟_)
-  open import Relation.Binary.Construct.Closure.ReflexiveTransitive
-  import Relation.Binary.Reasoning.Preorder as PreR
   
   open import PTS isVar 𝒜 ℛ
   open import PTS.Thinning isVar 𝒜 ℛ
@@ -218,7 +218,7 @@ module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
 
   open import Data.List.Relation.Binary.Pointwise as PW
 
-  lemma∙∙ι : ∀ {Γ} → Γ ∼αs Γ ∙∙ ι
+  lemma∙∙ι : ∀ {Γ} → Γ ≈α Γ ∙∙ ι
   lemma∙∙ι {[]} = []
   lemma∙∙ι {(x , A) ∷ Γ} = (PEq.refl , lemma∙ι) ∷ lemma∙∙ι {Γ}
 
@@ -301,14 +301,14 @@ module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
     x∉domΓ with Γ,x:Aok
     ... | ⊢cons _ x∉domΓ _ = x∉domΓ
     y∉domΓι : y ∉ dom (Γ ∙∙ ι)
-    y∉domΓι = lemma∉∼αs y∉domΓ (∼σs lemma∙∙ι)
+    y∉domΓι = lemma∉≈α y∉domΓ (∼σs lemma∙∙ι)
     Γι⊢Aι:s : ∃ λ s → Γ ∙∙ ι ⊢ A ∙ ι ∶ c s
     Γι⊢Aι:s = proj₁ Γ⊢A:s , closureAlpha lemma∙∙ι lemma∙ι ∼ρ (proj₂ Γ⊢A:s)
     Γok : Γ ok
     Γok = validCxtAsg (proj₂ Γ⊢A:s)
     Γιok : Γ ∙∙ ι ok
     Γιok = closAlphaCxt lemma∙∙ι Γok
-    Γι,y:Aι∼Γ,y:A : Γ ∙∙ ι ‚ y ∶ A ∙ ι ∼αs Γ ‚ y ∶ A
+    Γι,y:Aι∼Γ,y:A : Γ ∙∙ ι ‚ y ∶ A ∙ ι ≈α Γ ‚ y ∶ A
     Γι,y:Aι∼Γ,y:A = _∷_ (PEq.refl , (∼σ lemma∙ι)) (∼σs lemma∙∙ι)
     Γι,y:Aιok : Γ ∙∙ ι ‚ y ∶ A ∙ ι ok    
     Γι,y:Aιok =  ⊢cons Γιok y∉domΓι (proj₂ Γι⊢Aι:s)
