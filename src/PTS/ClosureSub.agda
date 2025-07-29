@@ -40,7 +40,7 @@ module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
   subRen {Γ} {Δ} {x} {y} {s} {A} {σ} x∉domΓ y∉domΔ Γ⊢A:s Δ⊢Aσ:s h = lemma2
     where
     Δok : Δ ok
-    Δok = validCxtAsg Δ⊢Aσ:s
+    Δok = validCxt Δ⊢Aσ:s
     Δ,y:Aσok : Δ ‚ y ∶ A ∙ σ ok
     Δ,y:Aσok = ⊢cons Δok y∉domΔ Δ⊢Aσ:s
     lemma2 : ∀ {z B} → (z , B) ∈ (Γ ‚ x ∶ A) → Δ ‚ y ∶ A ∙ σ ⊢ (σ ‚ x := v y) z ∶ B ∙ σ ‚ x := v y
@@ -60,7 +60,7 @@ module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
       Δ⊆Δ,y:A : Δ ⊆ (Δ ‚ y ∶ A ∙ σ)
       Δ⊆Δ,y:A = xs⊆x∷xs Δ (y , A ∙ σ)
       Γok : Γ ok
-      Γok = validCxtAsg Γ⊢A:s
+      Γok = validCxt Γ⊢A:s
       x#B : x # B
       x#B = freshCxt Γok x∉domΓ z,B∈Γ
       Bσ=Bσ<+x,y : B ∙ σ ≡ B ∙ σ ‚ x := v y
@@ -235,9 +235,9 @@ module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
   subUnaryAux {x} {s} {Γ} {N} {A} x∉domΓ Γ⊢A:s Γι⊢N:Aι {y} {B} (there y,B∈Γ) | no _ = subst (_⊢_∶_ (Γ ∙∙ ι) (v y)) Bι=[N/x]B ιΓ⊢y:ιB
     where
     Γok : Γ ok
-    Γok = validCxtAsg Γ⊢A:s
+    Γok = validCxt Γ⊢A:s
     Γιok : Γ ∙∙ ι ok
-    Γιok = validCxtAsg Γι⊢N:Aι
+    Γιok = validCxt Γι⊢N:Aι
     x#B : x # B
     x#B = freshCxt Γok x∉domΓ y,B∈Γ
     Bι=[N/x]B : B ∙ ι ≡ B ∙ ι ‚ x := N
@@ -247,14 +247,14 @@ module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
     ιΓ⊢y:ιB : Γ ∙∙ ι ⊢ v y ∶ B ∙ ι
     ιΓ⊢y:ιB = ⊢var Γιok y,Bι∈Γι
 
-  subUnary : ∀ {x s Γ N A} → x ∉ dom Γ → Γ ⊢ A ∶ s → Γ ⊢ N ∶ A → ι ‚ x := N ∶ (Γ ‚ x ∶ A) ⇀ Γ
+  subUnary : ∀ {x s Γ N A} → x ∉ dom Γ → Γ ⊢ A ∶ s → Γ ⊢ N ∶ A → (ι ‚ x := N) ∶ (Γ ‚ x ∶ A) ⇀ Γ
   subUnary {x} {s} {Γ} {N} {A} x∉domΓ Γ⊢A:s Γ⊢N:A {z} {B} z,B∈Γ =
     closAlphaAsg (∼σs lemma∙∙ι) ∼ρ Γι⊢z[x=N]:A[x=N] 
     where
     ιΓ⊢N:ιA : Γ ∙∙ ι ⊢ N ∶ A ∙ ι
     ιΓ⊢N:ιA = closAlphaPred lemma∙∙ι lemma∙ι Γ⊢N:A
     ιΓok : Γ ∙∙ ι ok
-    ιΓok = validCxtAsg ιΓ⊢N:ιA
+    ιΓok = validCxt ιΓ⊢N:ιA
     ι,x=N:Γ,x:A→Γι : ι ‚ x := N ∶ (Γ ‚ x ∶ A) ⇀ Γ ∙∙ ι
     ι,x=N:Γ,x:A→Γι = subUnaryAux x∉domΓ Γ⊢A:s ιΓ⊢N:ιA
     Γι⊢z[x=N]:A[x=N] : Γ ∙∙ ι ⊢ (ι ‚ x := N) z ∶ B ∙ ι ‚ x := N
@@ -266,12 +266,12 @@ module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
     closureSub ι,x=N:Γ,x:s→Γ Γok Γ,x:s⊢M:B
     where
     x∉domΓ : x ∉ dom Γ
-    x∉domΓ with validCxtAsg Γ,x:s⊢M:B
+    x∉domΓ with validCxt Γ,x:s⊢M:B
     ... | ⊢cons _ x∉domΓ _ = x∉domΓ
     Γok : Γ ok
-    Γok = validCxtAsg Γ⊢N:s
+    Γok = validCxt Γ⊢N:s
     Γ⊢s:s' : ∃ λ s' → Γ ⊢ c s ∶ c s'
-    Γ⊢s:s' with validCxtAsg Γ,x:s⊢M:B
+    Γ⊢s:s' with validCxt Γ,x:s⊢M:B
     ... | ⊢cons {s = s'} _ _ Γ⊢s:s' = s' , Γ⊢s:s'
     ι,x=N:Γ,x:s→Γ : ι ‚ x := N ∶ (Γ ‚ x ∶ c s) ⇀ Γ
     ι,x=N:Γ,x:s→Γ = subUnary x∉domΓ (proj₂ Γ⊢s:s') Γ⊢N:s  
@@ -279,10 +279,10 @@ module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
     closureSub ι,x=N:Γ,x:A→Γ Γok Γ,x:A⊢M:B
     where
     x∉domΓ : x ∉ dom Γ
-    x∉domΓ with validCxtAsg Γ,x:A⊢M:B
+    x∉domΓ with validCxt Γ,x:A⊢M:B
     ... | ⊢cons _ x∉domΓ _ = x∉domΓ
     Γok : Γ ok
-    Γok = validCxtAsg Γ⊢N:A
+    Γok = validCxt Γ⊢N:A
     ι,x=N:Γ,x:A→Γ : ι ‚ x := N ∶ (Γ ‚ x ∶ A) ⇀ Γ
     ι,x=N:Γ,x:A→Γ = subUnary x∉domΓ Γ⊢A:s Γ⊢N:A
 
@@ -293,7 +293,7 @@ module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
   unaryRen {Γ} {x} {y} {A} {M} {B} y∉domΓ Γ,x:A⊢M:B = closureAlpha Γι,y:Aι∼Γ,y:A ∼ρ ∼ρ Γι,y:Aι⊢M[x=y]:B[x=y]
     where
     Γ,x:Aok : Γ ‚ x ∶ A ok
-    Γ,x:Aok = validCxtAsg Γ,x:A⊢M:B
+    Γ,x:Aok = validCxt Γ,x:A⊢M:B
     Γ⊢A:s : ∃ λ s → Γ ⊢ A ∶ c s
     Γ⊢A:s with Γ,x:Aok
     ... | ⊢cons {s = s} _ _ Γ⊢A:s = s , Γ⊢A:s
@@ -305,7 +305,7 @@ module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
     Γι⊢Aι:s : ∃ λ s → Γ ∙∙ ι ⊢ A ∙ ι ∶ c s
     Γι⊢Aι:s = proj₁ Γ⊢A:s , closureAlpha lemma∙∙ι lemma∙ι ∼ρ (proj₂ Γ⊢A:s)
     Γok : Γ ok
-    Γok = validCxtAsg (proj₂ Γ⊢A:s)
+    Γok = validCxt (proj₂ Γ⊢A:s)
     Γιok : Γ ∙∙ ι ok
     Γιok = closAlphaCxt lemma∙∙ι Γok
     Γι,y:Aι∼Γ,y:A : Γ ∙∙ ι ‚ y ∶ A ∙ ι ≈α Γ ‚ y ∶ A

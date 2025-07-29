@@ -7,6 +7,7 @@ open import Data.List
 open import Data.List.Membership.Propositional
 open import Relation.Binary.PropositionalEquality
 open import Data.Empty
+open import Level
 
 open import Stoughton.Var
 
@@ -81,7 +82,7 @@ module BetaReduction (𝒞 : Set) {𝒱 : Set} (var : IsVar 𝒱) where
   app-star-r (inj₁ t∼t' ◅ t'→β*t'')  = (inj₁ (∼· ∼ρ t∼t')) ◅ app-star-r t'→β*t''  
   app-star-r (inj₂ t→t' ◅ t'→β*t'')  = (inj₂ (→·R t→t')) ◅ app-star-r t'→β*t''
 
-  open OneStepBeta.PreservesFreshness βpreserves# renaming (lemma*→C⁻¹ to lemma*→β⁻¹)
+  open OneStepBeta.PreservesFreshness βpreserves# using (∈→C-) renaming (lemma*→C⁻¹ to lemma*→β⁻¹; lemma#→C to lemma#→β) public
   open import Definitions 𝒞 var
   
   lemma→α** : {x : 𝒱}{M N : Λ} → x * N → M →β* N → x * M
@@ -108,3 +109,6 @@ module BetaReduction (𝒞 : Set) {𝒱 : Set} (var : IsVar 𝒱) where
   compatRedsSub (inj₁ M∼P ◅ P→*N) = inj₁ (≡⇒∼ (compatSubAlpha M∼P)) ◅ compatRedsSub P→*N
   compatRedsSub (inj₂ M→P ◅ P→*N) with compatRedSub M→P
   ... | Q , Mσ→Q , Q∼Pσ = inj₂ Mσ→Q ◅ inj₁ Q∼Pσ ◅ compatRedsSub P→*N
+
+  ∃₃ : ∀ {a b c d} {A : Set a} {B : A → Set b} {C : (x : A) → B x → Set c} (D : (x : A) → (y : B x) → C x y → Set d) → Set (a ⊔ b ⊔ c ⊔ d)
+  ∃₃ D = ∃ λ a → ∃ λ b → ∃ λ c → D a b c

@@ -1,11 +1,11 @@
 open import Relation.Binary
 open import Level
 
-import Stoughton.Syntax as Term
+import Stoughton.Syntax as Syntax
 open import Stoughton.Var
 
 -- rename to CxtClosure
-module CxtClosure (𝒞 : Set) {𝒱} (var : IsVar 𝒱) (_▹_ : Rel (Term.Λ 𝒞 𝒱 (IsVar._≟_ var)) 0ℓ) where
+module CxtClosure (𝒞 : Set) {𝒱} (var : IsVar 𝒱) (_▹_ : Rel (Syntax.Λ 𝒞 𝒱 (IsVar._≟_ var)) 0ℓ) where
 
   open import Data.Product
   open import Data.Nat hiding (_*_; _≟_)
@@ -22,7 +22,7 @@ module CxtClosure (𝒞 : Set) {𝒱} (var : IsVar 𝒱) (_▹_ : Rel (Term.Λ �
   private
     _≟_ = IsVar._≟_ var
   
-  open Term 𝒞 𝒱 _≟_
+  open Syntax 𝒞 𝒱 _≟_
   open import Stoughton.Substitution 𝒞 var
   open import Stoughton.SubstitutionLemmas 𝒞 var
   open import Stoughton.Alpha 𝒞 var
@@ -33,10 +33,10 @@ module CxtClosure (𝒞 : Set) {𝒱} (var : IsVar 𝒱) (_▹_ : Rel (Term.Λ �
   infix 3 _→C_
   data _→C_ : Λ → Λ → Set where
     →cxt : ∀ {M N} → M ▹ N → M →C N    
-    →λR : ∀ {x M M' A} → M →C M' → λ[ x ∶ A ] M →C λ[ x ∶ A ] M'
-    →ΠR  : ∀ {x B B' A} → B →C B' → Π[ x ∶ A ] B →C Π[ x ∶ A ] B'
-    →λL : ∀ {x M A A'} → A →C A' → λ[ x ∶ A ] M →C λ[ x ∶ A' ] M    
-    →ΠL  : ∀ {x B A A'} → A →C A' → Π[ x ∶ A ] B →C Π[ x ∶ A' ] B
+    →λL : ∀ {x M A A'} → A →C A' → λ[ x ∶ A ] M →C λ[ x ∶ A' ] M
+    →λR : ∀ {x M M' A} → M →C M' → λ[ x ∶ A ] M →C λ[ x ∶ A ] M'    
+    →ΠL  : ∀ {x A A' B} → A →C A' → Π[ x ∶ A ] B →C Π[ x ∶ A' ] B
+    →ΠR  : ∀ {x A B B'} → B →C B' → Π[ x ∶ A ] B →C Π[ x ∶ A ] B'    
     →·L : ∀ {M N P} → M →C N → M · P →C N · P
     →·R : ∀ {M N P} → M →C N → P · M →C P · N 
 
@@ -79,6 +79,9 @@ module CxtClosure (𝒞 : Set) {𝒱} (var : IsVar 𝒱) (_▹_ : Rel (Term.Λ �
 
     ∉→C- : ∀ {x y M N} → x ∉ fv M - y → M →C N → x ∉ fv N - y
     ∉→C- x∉vfM-y M→N x∈fvN-y = ⊥-elim (x∉vfM-y (∈→C- x∈fvN-y M→N))
+
+    lemma#→C : Preserves# _→C_
+    lemma#→C x#M M→N x*N = ⊥-elim (x#M (lemma*→C⁻¹ x*N M→N))
 
   module CompatSubst (pres : Preserves# _▹_) (compat : Compat∙ _▹_) where
     open PreservesFreshness pres

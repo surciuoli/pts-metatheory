@@ -25,7 +25,11 @@ module BetaConversion (𝒞 : Set) {𝒱 : Set} (var : IsVar 𝒱) where
 
   lemma∼α⊆≃β : _∼α_ ⇒ _≃β_
   lemma∼α⊆≃β M∼N = inj₁ (inj₁ M∼N) ◅ ε
-    
+
+  manyStepBetaContainsConv : _→β*_ ⇒ _≃β_
+  manyStepBetaContainsConv ε = ε
+  manyStepBetaContainsConv (M→N ◅ N→*P) = inj₁ M→N ◅ manyStepBetaContainsConv N→*P
+
   compatConvSub : ∀ {M N σ} → M ≃β N → M ∙ σ ≃β N ∙ σ
   compatConvSub ε = ε
   compatConvSub (inj₁ (inj₁ M∼j) ◅ j≃N) = inj₁ (inj₁ (≡⇒∼ (compatSubAlpha M∼j))) ◅ compatConvSub j≃N  

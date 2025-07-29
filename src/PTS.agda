@@ -185,19 +185,21 @@ module PTS {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set)
   freshAsg : ∀ {Γ M A w} → w ∉ dom Γ → Γ ⊢ M ∶ A → w # M · A
   freshAsg w∉Γ Γ⊢M:A = counter-reciproc (freeAsg Γ⊢M:A) w∉Γ
 
-  validCxtAsg : ∀ {Γ M A} → Γ ⊢ M ∶ A → Γ ok
-  validCxtAsg (⊢sort Γok _) = Γok
-  validCxtAsg (⊢var Γok _) = Γok
-  validCxtAsg (⊢abs _ t _ _) = validCxtAsg t
-  validCxtAsg (⊢app t _ _) = validCxtAsg t
-  validCxtAsg (⊢conv t _ _) = validCxtAsg t
-  validCxtAsg (⊢prod _ Γ⊢A:U _) = validCxtAsg Γ⊢A:U
-
-  ∃₃ : ∀ {a b c d} {A : Set a} {B : A → Set b} {C : (x : A) → B x → Set c} (D : (x : A) → (y : B x) → C x y → Set d) → Set (a ⊔ b ⊔ c ⊔ d)
-  ∃₃ D = ∃ λ a → ∃ λ b → ∃ λ c → D a b c
+  validCxt : ∀ {Γ M A} → Γ ⊢ M ∶ A → Γ ok
+  validCxt (⊢sort Γok _) = Γok
+  validCxt (⊢var Γok _) = Γok
+  validCxt (⊢abs _ t _ _) = validCxt t
+  validCxt (⊢app t _ _) = validCxt t
+  validCxt (⊢conv t _ _) = validCxt t
+  validCxt (⊢prod _ Γ⊢A:U _) = validCxt Γ⊢A:U
+  
+  ∃₄ : ∀ {a b c d e} {A : Set a} {B : A → Set b} {C : (x : A) → B x → Set c} {D : (x : A) → (y : B x) → C x y → Set d}
+       (E : (x : A) → (y : B x) → (z : C x y) → D x y z → Set e) → Set (a ⊔ b ⊔ c ⊔ d ⊔ e)
+  ∃₄ E = ∃ λ a → ∃ λ b → ∃ λ c → ∃ λ d → E a b c d
   
   ∃₅ : ∀ {a b c d e f} {A : Set a} {B : A → Set b} {C : (x : A) → B x → Set c} {D : (x : A) → (y : B x) → C x y → Set d}
-       {E : (x : A) → (y : B x) → (z : C x y) → D x y z → Set e} (F : (x : A) → (y : B x) → (z : C x y) → (α : D x y z) → E x y z α → Set f) → Set (a ⊔ b ⊔ c ⊔ d ⊔ e ⊔ f)
+       {E : (x : A) → (y : B x) → (z : C x y) → D x y z → Set e}
+       (F : (x : A) → (y : B x) → (z : C x y) → (α : D x y z) → E x y z α → Set f) → Set (a ⊔ b ⊔ c ⊔ d ⊔ e ⊔ f)
   ∃₅ F = ∃ λ a → ∃ λ b → ∃ λ c → ∃ λ d → ∃ λ e → F a b c d e 
 
   ∃₆ : ∀ {a b c d e f g} {A : Set a} {B : A → Set b} {C : (x : A) → B x → Set c} {D : (x : A) → (y : B x) → C x y → Set d}
@@ -212,9 +214,10 @@ module PTS {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set)
         × Γ ⊢ A ∶ c s₁        
         × (∀ y → y ∉ dom Γ → Γ ‚ y ∶ A ⊢ B [ x := v y ] ∶ c s₂)
         × C ≃β c s₃
+  genProd (⊢prod {s₁ = s₁} {s₂} {s₃} Rs₁s₂s₃ h₁ h₂) = s₁ , s₂ , s₃ , Rs₁s₂s₃ , h₁ , h₂ , Eq.reflexive (_∼α_ ∪ _→β_)        
   genProd (⊢conv Γ⊢Π[x:A]B:C C=D _) with genProd Γ⊢Π[x:A]B:C
-  ... | s₁ , s₂ , s₃ , Rs₁s₂s₃ , h₁ , h₂ , C=𝒰 = s₁ , s₂ , s₃ , Rs₁s₂s₃ , h₁ , h₂ , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C=D) C=𝒰
-  genProd (⊢prod {s₁ = s₁} {s₂} {s₃} Rs₁s₂s₃ h₁ h₂) = s₁ , s₂ , s₃ , Rs₁s₂s₃ , h₁ , h₂ , Eq.reflexive (_∼α_ ∪ _→β_) 
+  ... | s₁ , s₂ , s₃ , Rs₁s₂s₃ , h₁ , h₂ , C=𝒰 =
+    s₁ , s₂ , s₃ , Rs₁s₂s₃ , h₁ , h₂ , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C=D) C=𝒰 
 
   genLam : ∀ {Γ x A M C} → Γ ⊢ λ[ x ∶ A ] M ∶ C
          → ∃₅ λ s₁ s₂ s₃ x' B
@@ -227,4 +230,5 @@ module PTS {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set)
     s₁ , s₂ , s₃ , x' , B , Rs₁s₂s₃ , Γ⊢A:s₁ , ∀y∉Γ→Γ,y:A⊢:B[x'=y]:s₂ , ∀y∉Γ→Γ,y:A⊢M[x=y]:B[x'=y] , Eq.reflexive (_∼α_ ∪ _→β_)
   genLam (⊢conv Γ⊢λ[x:A]M:C C≃D _) with genLam Γ⊢λ[x:A]M:C
   ... | s₁ , s₂ , s₃ , x' , B , Rs₁s₂s₃ , Γ⊢A:s₁ , ∀y∉Γ→Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[x':A]B:s₂ , D≃Π[x':A]B =
-    s₁ , s₂ , s₃ , x' , B , Rs₁s₂s₃ , Γ⊢A:s₁ , ∀y∉Γ→Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[x':A]B:s₂ , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C≃D) D≃Π[x':A]B
+    s₁ , s₂ , s₃ , x' , B , Rs₁s₂s₃ , Γ⊢A:s₁ , ∀y∉Γ→Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[x':A]B:s₂ ,
+    transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C≃D) D≃Π[x':A]B

@@ -69,11 +69,11 @@ module PTS.ClosureAlpha {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 
   invΠ {_} {_} {y} (∼Π {x} {x'} {z} {_} {_} {M} {M'} _ z∉fvM-x z∉fvM'-x' M[x=z]=M'[x'=z]) = renameInvAux {x} {x'} {y} {z} {M} {M'} z∉fvM-x z∉fvM'-x' M[x=z]=M'[x'=z]
     
   closAlphaCxt : ∀ {Γ Δ} → Γ ≈α Δ → Γ ok → Δ ok
-  -- TODO (?): separete conversion of cxts. from subjects as in subj. reduction.
   closAlphaAsg : ∀ {Γ Δ M N A} → Γ ≈α Δ → M ∼α N → Γ ⊢ M ∶ A → Δ ⊢ N ∶ A
   
   closAlphaCxt [] ⊢nil = ⊢nil
-  closAlphaCxt (_∷_ (refl , A∼B) Γ∼Δ) (⊢cons Γok x∉Γ Γ⊢A:s) = ⊢cons (closAlphaCxt Γ∼Δ Γok) (lemma∉≈α x∉Γ (∼σs Γ∼Δ)) (closAlphaAsg Γ∼Δ A∼B Γ⊢A:s)
+  closAlphaCxt (_∷_ (refl , A∼B) Γ∼Δ) (⊢cons Γok x∉Γ Γ⊢A:s) =
+    ⊢cons (closAlphaCxt Γ∼Δ Γok) (lemma∉≈α x∉Γ (∼σs Γ∼Δ)) (closAlphaAsg Γ∼Δ A∼B Γ⊢A:s)
 
   closAlphaAsg Γ∼Δ ∼c (⊢sort Γok As₁s₂) = ⊢sort (closAlphaCxt Γ∼Δ Γok) As₁s₂
   closAlphaAsg Γ∼Δ ∼v (⊢var Γok x,A∈Γ) with alphaConvDecl Γ∼Δ x,A∈Γ | closAlphaCxt Γ∼Δ Γok
