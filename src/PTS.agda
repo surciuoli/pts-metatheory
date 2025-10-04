@@ -73,11 +73,9 @@ module PTS {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set)
           → Γ ⊢ A ∶ c s₁
           → (∀ y → y ∉ dom Γ → Γ ‚ y ∶ A ⊢ B [ x := v y ] ∶ c s₂)
           → Γ ⊢ Π[ x ∶ A ] B ∶ c s₃           
-    ⊢abs : ∀ {x y s₁ s₂ s₃ A B M}
-         → ℛ s₁ s₂ s₃
-         → Γ ⊢ A ∶ c s₁
-         → (∀ z → z ∉ dom Γ → Γ ‚ z ∶ A ⊢ B [ y := v z ] ∶ c s₂)
+    ⊢abs : ∀ {x y s A B M}
          → (∀ z → z ∉ dom Γ → Γ ‚ z ∶ A ⊢ M [ x := v z ] ∶ B [ y := v z ])
+         → Γ ⊢ Π[ y ∶ A ] B ∶ c s
          → Γ ⊢ λ[ x ∶ A ] M ∶ Π[ y ∶ A ] B        
     ⊢app : ∀ {x s M N A B}
          → Γ ⊢ M ∶ Π[ x ∶ A ] B
@@ -96,7 +94,7 @@ module PTS {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set)
 
   freeCxt : ∀ {Γ y A w} → Γ ok → (y , A) ∈ Γ → w * A → w ∈ dom Γ
   freeAsg : ∀ {Γ M A w} → Γ ⊢ M ∶ A → w * M · A → w ∈ dom Γ
-
+  
   freeCxt ⊢nil () _
   freeCxt (⊢cons {A = A} Γok _ Γ⊢A:s) (here refl) x*A = there (freeAsg Γ⊢A:s (∈-++⁺ˡ x*A))
   freeCxt (⊢cons Γok _ _) (there y∈Γ) x*Γy = there (freeCxt Γok y∈Γ x*Γy)
@@ -104,9 +102,9 @@ module PTS {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set)
   freeAsg {Γ} {v x} (⊢var Γok x,A∈Γ) w*xΓx with ∈-++⁻ (x ∷ []) w*xΓx
   freeAsg {Γ} {v .w} {A} {w} (⊢var Γok w,A∈Γ) w*wΓw | inj₁ (here refl) = inCxtInDom w,A∈Γ
   freeAsg {Γ} {v x} (⊢var Γok x,A∈Γ) w*xΓx | inj₂ w*Γx = freeCxt Γok x,A∈Γ w*Γx
-  freeAsg {Γ} {w = w} (⊢abs {x} {y} {_} {_} {_} {A} {B} {M} _ Γ⊢A:s₁ h₀ h) w*λxAMΠyAB with proj₁ (appList (fv (λ[ x ∶ A ] M))) w*λxAMΠyAB 
+  freeAsg {Γ} {w = w} (⊢abs {x} {y} {s} {A} {B} {M} h Γ⊢Π[x:A]B:s) w*λxAMΠyAB with proj₁ (appList (fv (λ[ x ∶ A ] M))) w*λxAMΠyAB
   ... | inj₁ w*λxAM with proj₁ (appList (fv A)) w*λxAM          
-  ... | inj₁ w*A = freeAsg Γ⊢A:s₁ (∈-++⁺ˡ w*A)
+  ... | inj₁ w*A = freeAsg Γ⊢Π[x:A]B:s (∈-++⁺ˡ (∈-++⁺ˡ w*A))
   ... | inj₂ w*M-x with proj₁ delList w*M-x
   ... | x≢w , w*M = lemma∈‚≢ w∈Γ,z:A (sym≢ z≢w)    
     where
@@ -124,8 +122,8 @@ module PTS {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set)
     w*M[x=z] = proj₂ (noCapture {M = M}) (w , w*M , w∈fvw[x=z])
     w∈Γ,z:A : w ∈ z ∷ dom Γ 
     w∈Γ,z:A = freeAsg (h z z∉Γ) (∈-++⁺ˡ w*M[x=z])
-  freeAsg {Γ} {w = w} (⊢abs {x} {y} {_} {_} {_} {A} {B} {M} _ Γ⊢A:s₁ h₀ h) w*λxMΠyB | inj₂ w*ΠxAB with ∈-++⁻ (fv A) w*ΠxAB
-  ... | inj₁ w*A = freeAsg Γ⊢A:s₁ (∈-++⁺ˡ w*A) 
+  freeAsg {Γ} {w = w} (⊢abs {x} {y} {s} {A} {B} {M} h Γ⊢Π[x:A]B:s) w*λxMΠyB | inj₂ w*ΠxAB with ∈-++⁻ (fv A) w*ΠxAB
+  ... | inj₁ w*A = freeAsg Γ⊢Π[x:A]B:s (∈-++⁺ˡ (∈-++⁺ˡ w*A))
   ... | inj₂ w*B-y with proj₁ delList w*B-y
   ... | y≢w , w*B = lemma∈‚≢ w∈Γ,z:A (sym≢ z≢w)    
     where
@@ -188,7 +186,7 @@ module PTS {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set)
   validCxt : ∀ {Γ M A} → Γ ⊢ M ∶ A → Γ ok
   validCxt (⊢sort Γok _) = Γok
   validCxt (⊢var Γok _) = Γok
-  validCxt (⊢abs _ t _ _) = validCxt t
+  validCxt (⊢abs _ t) = validCxt t
   validCxt (⊢app t _ _) = validCxt t
   validCxt (⊢conv t _ _) = validCxt t
   validCxt (⊢prod _ Γ⊢A:U _) = validCxt Γ⊢A:U
@@ -220,15 +218,13 @@ module PTS {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set)
     s₁ , s₂ , s₃ , Rs₁s₂s₃ , h₁ , h₂ , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C=D) C=𝒰 
 
   genLam : ∀ {Γ x A M C} → Γ ⊢ λ[ x ∶ A ] M ∶ C
-         → ∃₅ λ s₁ s₂ s₃ x' B
-         → ℛ s₁ s₂ s₃         
-         × Γ ⊢ A ∶ c s₁
-         × (∀ y → y ∉ dom Γ → Γ ‚ y ∶ A ⊢ B [ x' := v y ] ∶ c s₂)
-         × (∀ y → y ∉ dom Γ → Γ ‚ y ∶ A ⊢ M [ x := v y ] ∶ B [ x' := v y ])
+         → ∃₃ λ s x' B 
+         → (∀ y → y ∉ dom Γ → Γ ‚ y ∶ A ⊢ M [ x := v y ] ∶ B [ x' := v y ])
+         × Γ ⊢ Π[ x' ∶ A ] B ∶ c s
          × C ≃β Π[ x' ∶ A ] B
-  genLam (⊢abs {x} {x'} {s₁} {s₂} {s₃} {A} {B} Rs₁s₂s₃ Γ⊢A:s₁ ∀y∉Γ→Γ,y:A⊢:B[x'=y]:s₂ ∀y∉Γ→Γ,y:A⊢M[x=y]:B[x'=y]) =
-    s₁ , s₂ , s₃ , x' , B , Rs₁s₂s₃ , Γ⊢A:s₁ , ∀y∉Γ→Γ,y:A⊢:B[x'=y]:s₂ , ∀y∉Γ→Γ,y:A⊢M[x=y]:B[x'=y] , Eq.reflexive (_∼α_ ∪ _→β_)
+  genLam (⊢abs {x} {x'} {s} {A} {B} ∀y∉Γ→Γ,y:A⊢M[x=y]:B[x'=y] Γ⊢Π[x':A]B:s) =
+    s , x' , B , ∀y∉Γ→Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[x':A]B:s , Eq.reflexive (_∼α_ ∪ _→β_)
   genLam (⊢conv Γ⊢λ[x:A]M:C C≃D _) with genLam Γ⊢λ[x:A]M:C
-  ... | s₁ , s₂ , s₃ , x' , B , Rs₁s₂s₃ , Γ⊢A:s₁ , ∀y∉Γ→Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[x':A]B:s₂ , D≃Π[x':A]B =
-    s₁ , s₂ , s₃ , x' , B , Rs₁s₂s₃ , Γ⊢A:s₁ , ∀y∉Γ→Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[x':A]B:s₂ ,
-    transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C≃D) D≃Π[x':A]B
+  ... | s , x' , B , ∀y∉Γ→Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[x':A]B:s , D≃Π[x':A]B =
+    s , x' , B , ∀y∉Γ→Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[x':A]B:s , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C≃D) D≃Π[x':A]B
+

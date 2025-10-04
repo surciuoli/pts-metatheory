@@ -55,13 +55,11 @@ module PTS.Equivalence {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
           → y ∉ fv B - x
           → Γ ‚ y ∶ A ⊢ₛ B [ x := v y ] ∶ c s₂
           → Γ ⊢ₛ Π[ x ∶ A ] B ∶ c s₃          
-    ⊢abs : ∀ {x y z s₁ s₂ s₃ A B M}
-         → ℛ s₁ s₂ s₃
-         → Γ ⊢ₛ A ∶ c s₁
+    ⊢abs : ∀ {x y z s A B M}
          → z ∉ fv M - x
          → z ∉ fv B - y
-         → Γ ‚ z ∶ A ⊢ₛ B [ y := v z ] ∶ c s₂
          → Γ ‚ z ∶ A ⊢ₛ M [ x := v z ] ∶ B [ y := v z ]
+         → Γ ⊢ₛ Π[ y ∶ A ] B ∶ c s
          → Γ ⊢ₛ λ[ x ∶ A ] M ∶ Π[ y ∶ A ] B 
     ⊢app : ∀ {x M N A B}
          → Γ ⊢ₛ M ∶ Π[ x ∶ A ] B
@@ -77,7 +75,7 @@ module PTS.Equivalence {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
   validCxt (⊢sort Γok _) = Γok
   validCxt (⊢prod _ Γ⊢A:s _ _) = validCxt Γ⊢A:s
   validCxt (⊢var Γok _) = Γok    
-  validCxt (⊢abs _ t _ _ _ _) = validCxt t
+  validCxt (⊢abs _ _ _ t) = validCxt t
   validCxt (⊢app t _) = validCxt t
   validCxt (⊢conv t _ _) = validCxt t
     
@@ -95,21 +93,18 @@ module PTS.Equivalence {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
     s₁ , s₂ , s₃ , y , Rs₁s₂s₃ , Γ⊢A:s₁ , y∉fvB-x , Γ,y:A⊢B[x=y]:s₂ , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C=D) C=s₃
 
   genLam : ∀ {Γ x A M C} → Γ ⊢ₛ λ[ x ∶ A ] M ∶ C
-         → ∃₆ λ s₁ s₂ s₃ x' y B
-         → ℛ s₁ s₂ s₃         
-         × Γ ⊢ₛ A ∶ c s₁
-         × y ∉ fv M - x
+         → ∃₄ λ s x' y B
+         → y ∉ fv M - x
          × y ∉ fv B - x'
-         × Γ ‚ y ∶ A ⊢ₛ B [ x' := v y ] ∶ c s₂
          × Γ ‚ y ∶ A ⊢ₛ M [ x := v y ] ∶ B [ x' := v y ]
+         × Γ ⊢ₛ Π[ x' ∶ A ] B ∶ c s
          × C ≃β Π[ x' ∶ A ] B
-  genLam (⊢abs {x} {x'} {y} {s₁} {s₂} {s₃} {A} {B} Rs₁s₂s₃ Γ⊢A:s₁ y∉fvM-x y∉fvB-x' Γ,y:A⊢:B[x'=y]:s₂ Γ,y:A⊢M[x=y]:B[x'=y]) =
-    s₁ , s₂ , s₃ , x' , y , B , Rs₁s₂s₃ , Γ⊢A:s₁ , y∉fvM-x , y∉fvB-x' , Γ,y:A⊢:B[x'=y]:s₂ , Γ,y:A⊢M[x=y]:B[x'=y] ,
-    Eq.reflexive (_∼α_ ∪ _→β_)
+  genLam (⊢abs {x} {x'} {y} {s} {A} {B} y∉fvM-x y∉fvB-x' Γ,y:A⊢M[x=y]:B[x'=y] Γ⊢Π[y:A]B:s) =
+    s , x' , y , B , y∉fvM-x , y∉fvB-x' , Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[y:A]B:s , Eq.reflexive (_∼α_ ∪ _→β_)
   genLam (⊢conv Γ⊢λ[x:A]M:C C≃D _) with genLam Γ⊢λ[x:A]M:C
-  ... | s₁ , s₂ , s₃ , x' , y , B , Rs₁s₂s₃ , Γ⊢A:s₁ , y∉fvM-x , y∉fvB-x' , Γ,y:A⊢:B[x'=y]:s₂ , Γ,y:A⊢M[x=y]:B[x'=y] , D≃Π[x':A]B =
-    s₁ , s₂ , s₃ , x' , y , B , Rs₁s₂s₃ , Γ⊢A:s₁ , y∉fvM-x , y∉fvB-x' , Γ,y:A⊢:B[x'=y]:s₂ , Γ,y:A⊢M[x=y]:B[x'=y] ,
-    transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C≃D) D≃Π[x':A]B 
+  ... |  s ,  x' , y , B , y∉fvM-x , y∉fvB-x' , Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[y:A]B:s , D≃Π[x':A]B =
+    s , x' , y , B , y∉fvM-x , y∉fvB-x' , Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[y:A]B:s
+    , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C≃D) D≃Π[x':A]B 
     
   eqJudgCxt→ : ∀ {Γ} → Γ ok → Γ okₛ
   eqJudgAsg→ : ∀ {Γ M A} → Γ ⊢ M ∶ A → Γ ⊢ₛ M ∶ A
@@ -128,13 +123,12 @@ module PTS.Equivalence {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
     y∉domΓ = Xpfresh (dom Γ)
     y∉fvB-x : y ∉ fv B - x
     y∉fvB-x = c∉xs++ys→c∉ys {xs = fv A} (c∉xs++ys→c∉xs (freshAsgInf y∉domΓ Γ⊢Π[x:A]B:s₃))
-  eqJudgAsg→ {Γ} Γ⊢λ[x:A]M:Π[y:A]B@(⊢abs {x} {y} {s₁} {s₂} {s₃} {A} {B} {M} Rs₁s₂s₃ Γ⊢A:s₁ ∀z→Γ,z:A⊢B[y=z]:s₂ ∀z→Γ,z:A⊢M[x=z]:B[y=z]) =
-    ⊢abs Rs₁s₂s₃
-        (eqJudgAsg→ Γ⊢A:s₁)
+  eqJudgAsg→ {Γ} Γ⊢λ[x:A]M:Π[y:A]B@(⊢abs {x} {y} {s} {A} {B} {M} ∀z→Γ,z:A⊢M[x=z]:B[y=z] Γ⊢Π[y:A]B:s) =
+    ⊢abs
         z∉fvM-x
         z∉fvB-y
-        (eqJudgAsg→ (∀z→Γ,z:A⊢B[y=z]:s₂ z z∉domΓ))
         (eqJudgAsg→ (∀z→Γ,z:A⊢M[x=z]:B[y=z] z z∉domΓ))
+        (eqJudgAsg→ Γ⊢Π[y:A]B:s)
     where
     z : 𝒱
     z = X' (dom Γ)
@@ -167,18 +161,9 @@ module PTS.Equivalence {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
       Γ‚y':A⊢B[x=y][y=y']:s₂ = unaryRenInf y'∉domΓ Γ‚y:A⊢B[x=y]:s₂ 
       Γ‚y':A⊢B[x=y']:s₂ : Γ ‚ y' ∶ A ⊢ B [ x := v y' ] ∶ c s₂
       Γ‚y':A⊢B[x=y']:s₂ = subst (λ C → Γ ‚ y' ∶ A ⊢ C ∶ c s₂) (sym (composRenUpd {x} {y} {B} y∉fvB-x)) Γ‚y':A⊢B[x=y][y=y']:s₂   
-  eqJudgAsg← {Γ} (⊢abs {x} {y} {z} {s₁} {s₂} {s₃} {A} {B} {M} Rs₁s₂s₃ Γ⊢A:s₁ z∉fvM-x z∉fvB-y Γ,z:A⊢B[y=z]:s₂ Γ,z:A⊢M[x=z]:B[y=z]) =
-    ⊢abs Rs₁s₂s₃ (eqJudgAsg← Γ⊢A:s₁) goal goal2
+  eqJudgAsg← {Γ} h@(⊢abs {x} {y} {z} {s} {A} {B} {M} z∉fvM-x z∉fvB-y Γ,z:A⊢M[x=z]:B[y=z] Γ⊢Π[x:A]B:s) =
+    ⊢abs goal2 (eqJudgAsg← Γ⊢Π[x:A]B:s)
     where
-    goal : ∀ z' → z' ∉ dom Γ → Γ ‚ z' ∶ A ⊢ B [ y := v z' ] ∶ c s₂
-    goal z' z'∉domΓ = Γ‚z':A⊢B[y=z']:s₂
-      where
-      Γ‚z:A⊢B[y=z]:s₂ : Γ ‚ z ∶ A ⊢ B [ y := v z ] ∶ c s₂
-      Γ‚z:A⊢B[y=z]:s₂ = eqJudgAsg← Γ,z:A⊢B[y=z]:s₂
-      Γ‚z':A⊢B[y=z][z=z']:s₂ : Γ ‚ z' ∶ A ⊢ B [ y := v z ] [ z := v z' ] ∶ c s₂
-      Γ‚z':A⊢B[y=z][z=z']:s₂ = unaryRenInf z'∉domΓ Γ‚z:A⊢B[y=z]:s₂ 
-      Γ‚z':A⊢B[y=z']:s₂ : Γ ‚ z' ∶ A ⊢ B [ y := v z' ] ∶ c s₂
-      Γ‚z':A⊢B[y=z']:s₂ = subst (λ C → Γ ‚ z' ∶ A ⊢ C ∶ c s₂) (sym (composRenUpd {y} {z} {B} z∉fvB-y)) Γ‚z':A⊢B[y=z][z=z']:s₂
     goal2 : ∀ z' → z' ∉ dom Γ → Γ ‚ z' ∶ A ⊢ M [ x := v z' ] ∶ B [ y := v z' ] 
     goal2 z' z'∉domΓ = Γ‚z':A⊢M[x=z']:B[y=z']
       where
@@ -193,6 +178,7 @@ module PTS.Equivalence {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
           (sym (composRenUpd {x} {z} {M} z∉fvM-x))
           (sym (composRenUpd {y} {z} {B} z∉fvB-y))
           Γ‚z':A⊢M[x=z][z=z']:B[y=z][z=z']
+      
   eqJudgAsg← {Γ} (⊢app {x} {M} {N} {A} {B} Γ⊢ₛM:Π[x:A]B Γ⊢ₛN:A) with syntacticValidityInf Γ⊢M:Π[x:A]B
     where
     Γ⊢M:Π[x:A]B : Γ ⊢ M ∶ Π[ x ∶ A ] B 

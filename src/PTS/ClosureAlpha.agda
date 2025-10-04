@@ -85,18 +85,11 @@ module PTS.ClosureAlpha {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 
       s , thinning (xs⊆x∷xs Δ' (x , B)) Δ',x:Bok (closAlphaAsg Γ'∼Δ' ∼ρ Γ'⊢A:s)
     lemma (⊢cons Γok _ _) Δ,y:Bok@(⊢cons {Δ} {y} {_} {B} Δok y∉Δ Δ⊢C:𝒰) (there x,A∈Γ) (_∷_ (refl , _) Γ∼Δ) with lemma Γok Δok x,A∈Γ Γ∼Δ
     ... | s , Δ⊢A:s = s , thinning (xs⊆x∷xs Δ (y , B)) Δ,y:Bok Δ⊢A:s
-  closAlphaAsg {Γ} {Δ} Γ∼Δ λ[x:A]B∼λ[x':A']B'@(∼λ {.x} {x'} {w} {.A} {A'} {.M} {M'} A∼A' w#ƛxM w#ƛx'M' M[x=w]∼M'[x'=w]) (⊢abs {x} {y} {s₁} {s₂} {s₃} {A} {B} {M} Rs₁s₂s₂ Γ⊢A:s₁ h1 h2) =
-    ⊢conv (⊢abs {Δ} {x'} {y} {s₁} {s₂} {s₃} {A'} {B} Rs₁s₂s₂  Δ⊢A':s₁ goal₀ goal) (lemma∼α⊆≃β (∼σ Π[y:A]B∼Π[y:A']B)) Δ⊢Π[y:A]B:s₃ 
+  closAlphaAsg {Γ} {Δ} Γ∼Δ λ[x:A]B∼λ[x':A']B'@(∼λ {.x} {x'} {w} {.A} {A'} {.M} {M'} A∼A' w#ƛxM w#ƛx'M' M[x=w]∼M'[x'=w]) (⊢abs {x} {y} {s} {A} {B} {M} h2 Γ⊢Π[x:A]B:s) =
+    ⊢conv (⊢abs {Δ} {x'} {y} {s} {A'} {B} goal Δ⊢Π[y:A']B:s) (lemma∼α⊆≃β (∼σ Π[y:A]B∼Π[y:A']B)) Δ⊢Π[y:A]B:s
     where
     Π[y:A]B∼Π[y:A']B : Π[ y ∶ A ] B ∼α Π[ y ∶ A' ] B
     Π[y:A]B∼Π[y:A']B = ∼Π A∼A' (∉- (fv B)) (∉- (fv B)) PEq.refl
-    Δ⊢A':s₁ : Δ ⊢ A' ∶ c s₁
-    Δ⊢A':s₁ = closAlphaAsg Γ∼Δ A∼A' Γ⊢A:s₁
-    goal₀ : ∀ z → z ∉ dom Δ → Δ ‚ z ∶ A' ⊢ B [ y := v z ] ∶ c s₂
-    goal₀ z z∉Δ = closAlphaAsg (_∷_ (PEq.refl , A∼A') Γ∼Δ) ∼ρ (h1 z z∉Γ)
-      where
-      z∉Γ : z ∉ dom Γ
-      z∉Γ = lemma∉≈α z∉Δ Γ∼Δ    
     goal : ∀ z → z ∉ dom Δ → Δ ‚ z ∶ A' ⊢ M' [ x' := v z ] ∶ B [ y := v z ]
     goal z z∉Δ = closAlphaAsg (_∷_ (PEq.refl , A∼A') Γ∼Δ) (≡⇒∼ M[x=z]∼M'[x'=z]) (h2 z z∉Γ)
       where
@@ -104,8 +97,10 @@ module PTS.ClosureAlpha {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 
       z∉Γ = lemma∉≈α z∉Δ Γ∼Δ    
       M[x=z]∼M'[x'=z] : M ∙ ι ‚ x := v z ≡ M' ∙ ι ‚ x' := v z
       M[x=z]∼M'[x'=z] = invλ {y = z} λ[x:A]B∼λ[x':A']B'
-    Δ⊢Π[y:A]B:s₃ : Δ ⊢ Π[ y ∶ A ] B ∶ c s₃
-    Δ⊢Π[y:A]B:s₃ = ⊢prod Rs₁s₂s₂ (closAlphaAsg Γ∼Δ ∼ρ Γ⊢A:s₁) (λ z z∉Δ → closAlphaAsg (_∷_ (PEq.refl , ∼ρ) Γ∼Δ) ∼ρ (h1 z (lemma∉≈α z∉Δ Γ∼Δ)))
+    Δ⊢Π[y:A]B:s : Δ ⊢ Π[ y ∶ A ] B ∶ c s
+    Δ⊢Π[y:A]B:s = closAlphaAsg Γ∼Δ ∼ρ Γ⊢Π[x:A]B:s
+    Δ⊢Π[y:A']B:s : Δ ⊢ Π[ y ∶ A' ] B ∶ c s
+    Δ⊢Π[y:A']B:s = closAlphaAsg Γ∼Δ (lemma∼Π A∼A' ∼ρ) Γ⊢Π[x:A]B:s    
   closAlphaAsg {Γ} {Δ} Γ∼Δ (∼· {M} {M'} {N} {N'} M∼M' N∼N') (⊢app {x} {s} {A = A} {B = B} Γ⊢M:Π[x:A]B Γ⊢N:A Γ⊢[N/x]B:s) =
     ⊢conv Δ⊢M'N':[N'/x]B (lemma∼α⊆≃β (∼σ [N/x]B∼[N'/x]B)) Δ⊢[N/x]B:s
     where
