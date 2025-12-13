@@ -122,11 +122,11 @@ module CxtClosure (𝒞 : Set) {𝒱} (var : IsVar 𝒱) (_▹_ : Rel (Syntax.Λ
     compat→C∙ {M · N} {_} {σ} (→·R M→N) with compat→C∙ M→N
     ... | P , M→P , P∼N = (M ∙ σ) · P , →·R M→P , ∼· ∼ρ P∼N 
     
-  module CommutesAlpha (pres : Preserves# _▹_) (compat : Compat∙ _▹_) (comm : Comm∼α _▹_) where
+  module CommutesAlpha (pres : Preserves# _▹_) (compat : Compat∙ _▹_) (comm : CommAlpha _▹_) where
     open PreservesFreshness pres
     open CompatSubst pres compat
 
-    commut→Cα : Comm∼α _→C_
+    commut→Cα : CommAlpha _→C_
     commut→Cα M∼N (→cxt N▹P) with comm M∼N N▹P
     ... | Q , M▹Q , Q∼P = Q , →cxt M▹Q , Q∼P
     commut→Cα (∼· {M} {M′} {N} {N′} M~M′ N~N′) (→·L M′→M″) with commut→Cα M~M′ M′→M″

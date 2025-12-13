@@ -29,47 +29,45 @@ module PTS.Equivalence {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
   infix 3 _okₛ 
   infix 3 _⊢ₛ_∶_ 
 
-  data _okₛ : Cxt → Set 
-  data _⊢ₛ_∶_ Cxt : Λ → Λ → Set 
-  
-  data _okₛ where 
-    ⊢nil : [] okₛ 
-    ⊢cons : ∀ {Γ x s A}
-          → Γ okₛ
-          → x ∉ dom Γ
-          → Γ ⊢ₛ A ∶ c s
-          → Γ ‚ x ∶ A okₛ 
+  mutual
+    data _okₛ : Cxt → Set where 
+      ⊢nil : [] okₛ 
+      ⊢cons : ∀ {Γ x s A}
+            → Γ okₛ
+            → x ∉ dom Γ
+            → Γ ⊢ₛ A ∶ c s
+            → Γ ‚ x ∶ A okₛ 
 
-  data _⊢ₛ_∶_ Γ where 
-    ⊢var : ∀ {x A}
-         → Γ okₛ
-         → (x , A) ∈ Γ
-         → Γ ⊢ₛ v x ∶ A
-    ⊢sort : ∀ {s₁ s₂}
-          → Γ okₛ
-          → 𝒜 s₁ s₂
-          → Γ ⊢ₛ c s₁ ∶ c s₂
-    ⊢prod : ∀ {x y s₁ s₂ s₃ A B}
-          → ℛ s₁ s₂ s₃
-          → Γ ⊢ₛ A ∶ c s₁          
-          → y ∉ fv B - x
-          → Γ ‚ y ∶ A ⊢ₛ B [ x := v y ] ∶ c s₂
-          → Γ ⊢ₛ Π[ x ∶ A ] B ∶ c s₃          
-    ⊢abs : ∀ {x y z s A B M}
-         → z ∉ fv M - x
-         → z ∉ fv B - y
-         → Γ ‚ z ∶ A ⊢ₛ M [ x := v z ] ∶ B [ y := v z ]
-         → Γ ⊢ₛ Π[ y ∶ A ] B ∶ c s
-         → Γ ⊢ₛ λ[ x ∶ A ] M ∶ Π[ y ∶ A ] B 
-    ⊢app : ∀ {x M N A B}
-         → Γ ⊢ₛ M ∶ Π[ x ∶ A ] B
-         → Γ ⊢ₛ N ∶ A
-         → Γ ⊢ₛ M · N ∶ B [ x := N ]
-    ⊢conv : ∀ {s M A B}
-          → Γ ⊢ₛ M ∶ A
-          → A ≃β B
-          → Γ ⊢ₛ B ∶ c s
-          → Γ ⊢ₛ M ∶ B
+    data _⊢ₛ_∶_ (Γ : Cxt) : Λ → Λ → Set where 
+      ⊢var : ∀ {x A}
+           → Γ okₛ
+           → (x , A) ∈ Γ
+           → Γ ⊢ₛ v x ∶ A
+      ⊢sort : ∀ {s₁ s₂}
+            → Γ okₛ
+            → 𝒜 s₁ s₂
+            → Γ ⊢ₛ c s₁ ∶ c s₂
+      ⊢prod : ∀ {x y s₁ s₂ s₃ A B}
+            → ℛ s₁ s₂ s₃
+            → Γ ⊢ₛ A ∶ c s₁          
+            → y ∉ fv B - x
+            → Γ ‚ y ∶ A ⊢ₛ B [ x := v y ] ∶ c s₂
+            → Γ ⊢ₛ Π[ x ∶ A ] B ∶ c s₃          
+      ⊢abs : ∀ {x y z s A B M}
+           → z ∉ fv M - x
+           → z ∉ fv B - y
+           → Γ ‚ z ∶ A ⊢ₛ M [ x := v z ] ∶ B [ y := v z ]
+           → Γ ⊢ₛ Π[ y ∶ A ] B ∶ c s
+           → Γ ⊢ₛ λ[ x ∶ A ] M ∶ Π[ y ∶ A ] B 
+      ⊢app : ∀ {x M N A B}
+           → Γ ⊢ₛ M ∶ Π[ x ∶ A ] B
+           → Γ ⊢ₛ N ∶ A
+           → Γ ⊢ₛ M · N ∶ B [ x := N ]
+      ⊢conv : ∀ {s M A B}
+            → Γ ⊢ₛ M ∶ A
+            → A ≃β B
+            → Γ ⊢ₛ B ∶ c s
+            → Γ ⊢ₛ M ∶ B
 
   validCxt : ∀ {Γ M A} → Γ ⊢ₛ M ∶ A → Γ okₛ
   validCxt (⊢sort Γok _) = Γok
@@ -78,7 +76,9 @@ module PTS.Equivalence {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
   validCxt (⊢abs _ _ _ t) = validCxt t
   validCxt (⊢app t _) = validCxt t
   validCxt (⊢conv t _ _) = validCxt t
-    
+
+  -- inversion (generation) lemmas
+
   genProd : ∀ {Γ x A B C} → Γ ⊢ₛ Π[ x ∶ A ] B ∶ C
         → ∃₄ λ s₁ s₂ s₃ y
         → ℛ s₁ s₂ s₃

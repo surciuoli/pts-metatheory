@@ -21,7 +21,7 @@ module BetaConversion (𝒞 : Set) {𝒱 : Set} (var : IsVar 𝒱) where
 
   infix 3 _≃β_
 
-  _≃β_ = EqClosure (_∼α_ ∪ _→β_) -- Plus⇔ _→αβ_  --Plus⇔ _⇉α_
+  _≃β_ = EqClosure (_∼α_ ∪ _→β_)
 
   lemma∼α⊆≃β : _∼α_ ⇒ _≃β_
   lemma∼α⊆≃β M∼N = inj₁ (inj₁ M∼N) ◅ ε
@@ -38,12 +38,3 @@ module BetaConversion (𝒞 : Set) {𝒱 : Set} (var : IsVar 𝒱) where
   compatConvSub (inj₂ (inj₁ j∼M) ◅ j≃N) = inj₂ (inj₁ (≡⇒∼ (compatSubAlpha j∼M))) ◅ compatConvSub j≃N  
   compatConvSub (inj₂ (inj₂ j→M) ◅ j≃N) with compatRedSub j→M
   ... | P , jσ→P , P∼Mσ = inj₂ (inj₁ P∼Mσ) ◅ inj₂ (inj₂ jσ→P) ◅ compatConvSub j≃N
-
-{-
-  infix 3 _≃βˢ_
-  _≃βˢ_ : Sub → Sub → Set
-  σ ≃βˢ σ' = ∀ x → σ x ≃β σ' x
-  
-  compatConvConvSub : ∀ {M M' σ σ'} → M ≃β M' → σ ≃βˢ σ' →  M ∙ σ ≃β M' ∙ σ'
-  compatConvConvSub = {!!}
--}

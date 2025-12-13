@@ -55,7 +55,7 @@ module Beta (𝒞 : Set) {𝒱} (var : IsVar 𝒱) where
       (M ∙ ι ‚ x := N) ∙ σ
       ∎
 
-  commutβα : Comm∼α _▹β_
+  commutβα : CommAlpha _▹β_
   commutβα .{λ[ x ∶ A ] M · N} .{λ[ x′ ∶ A′ ] M′ · N′} (∼· {_} {_} {N} .{N′} (∼λ {x} .{x′} {y} {A} .{A′} {M} .{M′} A∼A′ y#λxM y#λx′M′ M[y/x]∼M′[y/x′]) N∼N′) (β {x′} {M′} {N′} {A′}) =
     M ∙ ι ‚ x := N , β , aux
     where
