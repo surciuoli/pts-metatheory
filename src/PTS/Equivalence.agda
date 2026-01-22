@@ -228,12 +228,19 @@ module PTS.Equivalence {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
     closureAlpha : ∀ {Γ Δ M N A B} → Γ ≈α Δ → M ∼α N → A ∼α B → Γ ⊢ₛ M ∶ A → Δ ⊢ₛ N ∶ B
     closureAlpha Γ∼Δ M∼N A∼B 𝒟 = eqJudgAsg→ (closureAlphaInf Γ∼Δ M∼N A∼B (eqJudgAsg← 𝒟))
 
---    closureSub : ∀ {σ Γ Δ M A} → Γ ⊢ₛ M ∶ A → σ ∶ Γ ⇀ Δ → Δ okₛ → Δ ⊢ₛ M ∙ σ ∶ A ∙ σ
---    closureSub 𝒟 𝓈 ℰ = eqJudgAsg→ (closureSubInf 𝓈 (eqJudgCxt← ℰ) (eqJudgAsg← 𝒟))
+    -- infix 2 _∶_⇀_
+    -- _∶_⇀ₛ_ : Sub → Cxt → Cxt → Set
+    -- σ ∶ Γ ⇀ₛ Δ = ∀ {x A} → (x , A) ∈ Γ → Δ ⊢ₛ σ x ∶ A ∙ σ
+      
+    -- closureSub : ∀ {σ Γ Δ M A} → Γ ⊢ₛ M ∶ A → σ ∶ Γ ⇀ Δ → Δ okₛ → Δ ⊢ₛ M ∙ σ ∶ A ∙ σ
+    -- closureSub 𝒟 𝓈 ℰ = eqJudgAsg→ (closureSubInf 𝓈 (eqJudgCxt← ℰ) (eqJudgAsg← 𝒟))
 
     cut :  ∀ {Γ M N A B x} → Γ ‚ x ∶ A ⊢ₛ M ∶ B → Γ ⊢ₛ N ∶ A → Γ ⊢ₛ M [ x := N ] ∶ B [ x := N ]
     cut 𝒟 ℰ = eqJudgAsg→ (cutInf (eqJudgAsg← 𝒟) (eqJudgAsg← ℰ))
 
+    unaryRen : ∀ {Γ x y A M B} → y ∉ dom Γ → Γ ‚ x ∶ A ⊢ₛ M ∶ B → Γ ‚ y ∶ A ⊢ₛ M [ x := v y ] ∶ B [ x := v y ]
+    unaryRen y∉domΓ 𝒟 = eqJudgAsg→ (unaryRenInf y∉domΓ (eqJudgAsg← 𝒟))
+    
     syntacticValidity : ∀ {Γ M A} → Γ ⊢ₛ M ∶ A → ∃ λ s → A ≡ c s ⊎ Γ ⊢ₛ A ∶ c s
     syntacticValidity 𝒟 with syntacticValidityInf (eqJudgAsg← 𝒟)
     ... | s , ℰ = s , Data.Sum.map (λ x → x) eqJudgAsg→ ℰ
