@@ -79,18 +79,15 @@ module PTS.Equivalence {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
 
   -- inversion (generation) lemmas
 
-  genProd : ∀ {Γ x A B C} → Γ ⊢ₛ Π[ x ∶ A ] B ∶ C
-        → ∃₄ λ s₁ s₂ s₃ y
-        → ℛ s₁ s₂ s₃
-        × Γ ⊢ₛ A ∶ c s₁
-        × y ∉ fv B - x
-        × Γ ‚ y ∶ A ⊢ₛ B [ x := v y ] ∶ c s₂
-        × C ≃β c s₃
-  genProd (⊢prod {x} {y} {s₁} {s₂} {s₃} Rs₁s₂s₃ Γ⊢A:s₁ y∉fvB-x Γ,y:A⊢B[x=y]:s₂) =
-    s₁ , s₂ , s₃ , y , Rs₁s₂s₃ , Γ⊢A:s₁ , y∉fvB-x , Γ,y:A⊢B[x=y]:s₂ , Eq.reflexive (_∼α_ ∪ _→β_)        
-  genProd (⊢conv Γ⊢Π[x:A]B:C C=D _) with genProd Γ⊢Π[x:A]B:C
-  ... | s₁ , s₂ , s₃ , y , Rs₁s₂s₃ , Γ⊢A:s₁ , y∉fvB-x , Γ,y:A⊢B[x=y]:s₂ , C=s₃ =
-    s₁ , s₂ , s₃ , y , Rs₁s₂s₃ , Γ⊢A:s₁ , y∉fvB-x , Γ,y:A⊢B[x=y]:s₂ , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C=D) C=s₃
+  genVar : ∀ {Γ x A} → Γ ⊢ₛ v x ∶ A → ∃ λ B → Γ okₛ × (x , B) ∈ Γ × A ≃β B
+  genVar {Γ} {x} {A} (⊢var {.x} {.A} Γok x,A∈Γ) = A , Γok , x,A∈Γ , Eq.reflexive (_∼α_ ∪ _→β_)
+  genVar {Γ} {x} {A} (⊢conv {_} {.(v x)} {C} {.A} Γ⊢x:C C≃A _) with genVar Γ⊢x:C
+  ... | B , Γok , x,B∈Γ , C≃B = B , Γok , x,B∈Γ , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C≃A) C≃B
+
+  genSort : ∀ {Γ s A} → Γ ⊢ₛ c s ∶ A → ∃ λ t → Γ okₛ × 𝒜 s t × A ≃β c t
+  genSort {Γ} {s} {.(c t)} (⊢sort {.s} {t} Γok 𝒜st) = t , Γok , 𝒜st , Eq.reflexive (_∼α_ ∪ _→β_)
+  genSort {Γ} {s} {A} (⊢conv {_} {.(c s)} {C} {.A} Γ⊢s:C C≃A _) with genSort Γ⊢s:C
+  ... | t , Γok , 𝒜st , C≃t = t , Γok , 𝒜st , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C≃A) C≃t
 
   genLam : ∀ {Γ x A M C} → Γ ⊢ₛ λ[ x ∶ A ] M ∶ C
          → ∃₄ λ s x' y B
@@ -105,7 +102,39 @@ module PTS.Equivalence {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
   ... |  s ,  x' , y , B , y∉fvM-x , y∉fvB-x' , Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[y:A]B:s , D≃Π[x':A]B =
     s , x' , y , B , y∉fvM-x , y∉fvB-x' , Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[y:A]B:s
     , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C≃D) D≃Π[x':A]B 
+
+  genAbs = genLam
+
+  genAbsGen : ∀ {Γ x A M C} → Γ ⊢ₛ λ[ x ∶ A ] M ∶ C
+         → ∀ y → y ∉ dom Γ → 
+         → ∃₃ λ s x' B 
+         --→ y ∉ fv M - x
+         --× y ∉ fv B - x'
+         × Γ ‚ y ∶ A ⊢ₛ M [ x := v y ] ∶ B [ x' := v y ]
+         × Γ ⊢ₛ Π[ x' ∶ A ] B ∶ c s
+         × C ≃β Π[ x' ∶ A ] B
+  genLamGen {y = y} (⊢abs {x} {x'} {z} {s} {A} {B} y∉fvM-x y∉fvB-x' Γ,y:A⊢M[x=y]:B[x'=y] Γ⊢Π[y:A]B:s) with z ≟ y
+  ... | yes _ = ?
+  ... | no _ = ?
+    s , x' , y , B , y∉fvM-x , y∉fvB-x' , Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[y:A]B:s , Eq.reflexive (_∼α_ ∪ _→β_)
+  genLamGen (⊢conv Γ⊢λ[x:A]M:C C≃D _) with genLam Γ⊢λ[x:A]M:C
+  ... |  s ,  x' , y , B , y∉fvM-x , y∉fvB-x' , Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[y:A]B:s , D≃Π[x':A]B =
+    s , x' , y , B , y∉fvM-x , y∉fvB-x' , Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[y:A]B:s
+    , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C≃D) D≃Π[x':A]B
     
+  genProd : ∀ {Γ x A B C} → Γ ⊢ₛ Π[ x ∶ A ] B ∶ C
+        → ∃₄ λ s₁ s₂ s₃ y
+        → ℛ s₁ s₂ s₃
+        × Γ ⊢ₛ A ∶ c s₁
+        × y ∉ fv B - x
+        × Γ ‚ y ∶ A ⊢ₛ B [ x := v y ] ∶ c s₂
+        × C ≃β c s₃
+  genProd (⊢prod {x} {y} {s₁} {s₂} {s₃} Rs₁s₂s₃ Γ⊢A:s₁ y∉fvB-x Γ,y:A⊢B[x=y]:s₂) =
+    s₁ , s₂ , s₃ , y , Rs₁s₂s₃ , Γ⊢A:s₁ , y∉fvB-x , Γ,y:A⊢B[x=y]:s₂ , Eq.reflexive (_∼α_ ∪ _→β_)        
+  genProd (⊢conv Γ⊢Π[x:A]B:C C=D _) with genProd Γ⊢Π[x:A]B:C
+  ... | s₁ , s₂ , s₃ , y , Rs₁s₂s₃ , Γ⊢A:s₁ , y∉fvB-x , Γ,y:A⊢B[x=y]:s₂ , C=s₃ =
+    s₁ , s₂ , s₃ , y , Rs₁s₂s₃ , Γ⊢A:s₁ , y∉fvB-x , Γ,y:A⊢B[x=y]:s₂ , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C=D) C=s₃
+
   eqJudgCxt→ : ∀ {Γ} → Γ ok → Γ okₛ
   eqJudgAsg→ : ∀ {Γ M A} → Γ ⊢ M ∶ A → Γ ⊢ₛ M ∶ A
 

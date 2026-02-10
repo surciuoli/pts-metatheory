@@ -28,6 +28,3 @@ module Definitions (𝒞 : Set) {𝒱} (var : IsVar 𝒱) where
   
   Compat∙ : (Λ → Λ → Set) → Set
   Compat∙ r = ∀ {M N σ} → r M N → Σ[ P ∈ Λ ](r (M ∙ σ) P × P ∼α N ∙ σ)
-
-  CommAlpha : (Λ → Λ → Set) → Set
-  CommAlpha _𝒮_ = ∀ {M N P} → M ∼α N → N 𝒮 P → ∃ λ Q → M 𝒮 Q × Q ∼α P
