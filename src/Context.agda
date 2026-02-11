@@ -6,10 +6,8 @@ open import Data.List.Membership.Propositional
 open import Data.Empty
 open import Relation.Binary
 open import Relation.Nullary
-    
-module Context (K : Set) (D : Set) (_≟_ : Decidable {A = K} _≡_)  where
 
---  infix 2 _∈_
+module Context (K : Set) (D : Set) (_≟_ : Decidable {A = K} _≡_)  where
 
   Cxt : Set
   Cxt = List (K × D)
@@ -32,3 +30,4 @@ module Context (K : Set) (D : Set) (_≟_ : Decidable {A = K} _≡_)  where
   lemma∉‚ {x} {y} x∉y,Γ x∈Γ with x ≟ y
   lemma∉‚ {x} {.x} x∉Γ,y x∈Γ | yes refl = x∉Γ,y (here refl)
   ... | no x≢y = x∉y,Γ (there x∈Γ)
+

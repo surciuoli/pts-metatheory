@@ -15,7 +15,10 @@ import Relation.Binary.Reasoning.Preorder as PreR
 open import Stoughton.Var
  
 module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
-  
+
+  private
+    _≟_ = IsVar._≟_ isVar
+    
   open import PTS isVar 𝒜 ℛ
   open import PTS.Thinning isVar 𝒜 ℛ
   open import PTS.ClosureAlpha isVar 𝒜 ℛ
@@ -27,7 +30,8 @@ module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
   open import Stoughton.Substitution 𝒞 isVar
   open import Stoughton.SubstitutionLemmas 𝒞 isVar
   open import Stoughton.Syntax 𝒞 𝒱 _≟_ hiding (length)
-  open import Context 𝒱 Λ _≟_ 
+  open import Context 𝒱 Λ _≟_
+  open import Context.Properties 𝒞 isVar  
   open import BetaConversion 𝒞 isVar
   
   open PreR ≈-preorder∼
@@ -74,8 +78,8 @@ module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
   closureSub : ∀ {Γ Δ M A σ} → σ ∶ Γ ⇀ Δ → Δ ok → Γ ⊢ M ∶ A → Δ ⊢ M ∙ σ ∶ A ∙ σ
   closureSub _ Δok (⊢sort _ As₁s₂) = ⊢sort Δok As₁s₂
   closureSub sub _ (⊢var _ x,A∈Γ) = sub x,A∈Γ
-  closureSub {Γ} {Δ} {_} {_} {σ} sub Δok Γ⊢λ[x:A]M:Π[y:A]B@(⊢abs {x} {y} {s} {A} {B} {M} h Γ⊢Π[y:A]B:s) =
-    ⊢abs goal Δ⊢Π[y:A]Bσ:s
+  closureSub {Γ} {Δ} {_} {_} {σ} sub Δok Γ⊢λ[x:A]M:Π[y:A]B@(⊢abs {x} {y} {s₁} {s₂} {s₃} {A} {B} {M} Rs₁s₂s₃ Γ⊢A:s₁ h h₀) =
+    ⊢abs Rs₁s₂s₃ Δ⊢Aσ:s₁ goal goal₀
     where
     x' y' : 𝒱    
     x' = X (σ , fv M - x)
@@ -84,14 +88,8 @@ module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
     x'#σ⇂fvM-x = Xfresh σ (fv M - x)
     y'#σ⇂fvB-y : y' #⇂ (σ , fv B - y)
     y'#σ⇂fvB-y = Xfresh σ (fv B - y)
-    Δ⊢Π[y:A]Bσ:s : Δ ⊢ Π[ y ∶ A ] B ∙ σ ∶ c s
-    Δ⊢Π[y:A]Bσ:s = closureSub sub Δok Γ⊢Π[y:A]B:s
-    Γ⊢A:s : ∃ λ s → Γ ⊢ A ∶ c s
-    Γ⊢A:s with genProd Γ⊢Π[y:A]B:s
-    ... | s , _ , _ , _ , Δ⊢A:s , _ = s , Δ⊢A:s
-    Δ⊢Aσ:s : ∃ λ s → Δ ⊢ A ∙ σ ∶ c s
-    Δ⊢Aσ:s with genProd Δ⊢Π[y:A]Bσ:s
-    ... | s , _ , _ , _ , Δ⊢Aσ:s , _ = s , Δ⊢Aσ:s
+    Δ⊢Aσ:s₁ : Δ ⊢ A ∙ σ ∶ c s₁
+    Δ⊢Aσ:s₁ = closureSub sub Δok Γ⊢A:s₁
     goal : ∀ z → z ∉ dom Δ → Δ ‚ z ∶ A ∙ σ ⊢ (M ∙ σ ‚ x := v x') [ x' := v z ] ∶ (B ∙ σ ‚ y := v y') [ y' := v z ]
     goal z z∉domΔ =
       closureAlpha ∼ρs lemma1 lemma2 ih
@@ -101,9 +99,9 @@ module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
       z'∉domΓ : z' ∉ dom Γ
       z'∉domΓ = Xpfresh (dom Γ)
       sub' : σ ‚ z' := v z ∶ (Γ ‚ z' ∶ A) ⇀ Δ ‚ z ∶ A ∙ σ 
-      sub' = subRen z'∉domΓ z∉domΔ (proj₂ Γ⊢A:s) (proj₂ Δ⊢Aσ:s) sub
+      sub' = subRen z'∉domΓ z∉domΔ Γ⊢A:s₁ Δ⊢Aσ:s₁ sub
       Δ,z:Aσok : Δ ‚ z ∶ A ∙ σ ok
-      Δ,z:Aσok = ⊢cons Δok z∉domΔ (proj₂ Δ⊢Aσ:s)
+      Δ,z:Aσok = ⊢cons Δok z∉domΔ Δ⊢Aσ:s₁
       ih : Δ  ‚ z ∶ A ∙ σ ⊢ M [ x := v z' ] ∙ σ ‚ z' := v z ∶ B [ y := v z' ] ∙ σ ‚ z' := v z
       ih = closureSub sub' Δ,z:Aσok (h z' z'∉domΓ)
       lemma1 : M [ x := v z' ] ∙ σ ‚ z' := v z ∼α (M ∙ σ ‚ x := v x') [ x' := v z ]
@@ -129,7 +127,33 @@ module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
         ∎
         where
         z'∉fvB-y : z' ∉ fv B - y
-        z'∉fvB-y = c∉xs++ys→c∉ys {xs = fv A} (c∉xs++ys→c∉ys {xs = fv A ++ (fv M - x)} (freshAsg z'∉domΓ Γ⊢λ[x:A]M:Π[y:A]B))                
+        z'∉fvB-y = c∉xs++ys→c∉ys {xs = fv A} (c∉xs++ys→c∉ys {xs = fv A ++ (fv M - x)} (freshAsg z'∉domΓ Γ⊢λ[x:A]M:Π[y:A]B))
+    goal₀ : ∀ z → z ∉ dom Δ → Δ ‚ z ∶ A ∙ σ ⊢ (B ∙ σ ‚ y := v y') [ y' := v z ] ∶ c s₂
+    goal₀ z z∉domΔ =
+      closureAlpha ∼ρs lemma2 ∼ρ ih
+      where
+      z' : 𝒱
+      z' = X' (dom Γ)
+      z'∉domΓ : z' ∉ dom Γ
+      z'∉domΓ = Xpfresh (dom Γ)
+      sub' : σ ‚ z' := v z ∶ (Γ ‚ z' ∶ A) ⇀ Δ ‚ z ∶ A ∙ σ 
+      sub' = subRen z'∉domΓ z∉domΔ Γ⊢A:s₁ Δ⊢Aσ:s₁ sub
+      Δ,z:Aσok : Δ ‚ z ∶ A ∙ σ ok
+      Δ,z:Aσok = ⊢cons Δok z∉domΔ Δ⊢Aσ:s₁
+      ih : Δ  ‚ z ∶ A ∙ σ ⊢ B [ y := v z' ] ∙ σ ‚ z' := v z ∶ c s₂
+      ih = closureSub sub' Δ,z:Aσok (h₀ z' z'∉domΓ)
+      lemma2 : B [ y := v z' ] ∙ σ ‚ z' := v z ∼α (B ∙ σ ‚ y := v y') [ y' := v z ]
+      lemma2 = 
+        begin
+        B [ y := v z' ] ∙ σ ‚ z' := v z
+        ≈⟨ sym (composRenUpd {y} {z'} {B} {v z} z'∉fvB-y) ⟩
+        B ∙ σ ‚ y := v z
+        ∼⟨ ∼σ (composRenUnary {y} {y'} {σ} {B} y'#σ⇂fvB-y) ⟩
+        (B ∙ σ ‚ y := v y') [ y' := v z ]
+        ∎
+        where
+        z'∉fvB-y : z' ∉ fv B - y
+        z'∉fvB-y = c∉xs++ys→c∉ys {xs = fv A} (c∉xs++ys→c∉ys {xs = fv A ++ (fv M - x)} (freshAsg z'∉domΓ Γ⊢λ[x:A]M:Π[y:A]B))           
   closureSub {Γ} {Δ} {_} {_} {σ} sub Δok (⊢app {x} {s} {M} {N} {A} {B} Γ⊢M:ΠxAB Γ⊢N:A Γ⊢[N/x]B:s) =
     closureAlpha ∼ρs ∼ρ (∼σ lemma) Δ⊢σMσN:[σN/x']x'/x,σB 
     where

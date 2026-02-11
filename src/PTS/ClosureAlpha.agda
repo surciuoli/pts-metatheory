@@ -16,28 +16,21 @@ open import Stoughton.Var
 
 module PTS.ClosureAlpha {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
 
+  private
+    _≟_ = IsVar._≟_ isVar
+    
   open import PTS isVar 𝒜 ℛ
   open import PTS.Thinning isVar 𝒜 ℛ
   
   open import Stoughton.Alpha 𝒞 isVar
   open import Stoughton.Syntax 𝒞 𝒱 _≟_
   open import Context 𝒱 Λ (IsVar._≟_ isVar)
+  open import Context.Properties 𝒞 isVar
   open import Stoughton.Substitution 𝒞 isVar
   open import Stoughton.SubstitutionLemmas 𝒞 isVar
   open import BetaConversion 𝒞 isVar
   
   open import Relation.Binary.PreorderReasoning ≈-preorder∼
-
-  infix 1 _≈α_
-  _≈α_ : Cxt → Cxt → Set
-  _≈α_ = Pointwise (λ (x , A) (y , B) → x ≡ y × A ∼α B)
-
-  ∼ρs : ∀ {Γ} → Γ ≈α Γ
-  ∼ρs = Pw.refl (PEq.refl , ∼ρ)
-
-  ∼σs : ∀ {Γ Δ} → Γ ≈α Δ → Δ ≈α Γ
-  ∼σs [] = []
-  ∼σs ((x=y , A∼B) ∷ xs) = (sym x=y , ∼σ A∼B) ∷ ∼σs xs
 
   lemma∉≈α : ∀ {y Γ Δ} → y ∉ dom Δ → Γ ≈α Δ → y ∉ dom Γ
   lemma∉≈α y∉Γ′ [] = λ ()
@@ -85,8 +78,9 @@ module PTS.ClosureAlpha {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 
       s , thinning (xs⊆x∷xs Δ' (x , B)) Δ',x:Bok (closAlphaAsg Γ'∼Δ' ∼ρ Γ'⊢A:s)
     lemma (⊢cons Γok _ _) Δ,y:Bok@(⊢cons {Δ} {y} {_} {B} Δok y∉Δ Δ⊢C:𝒰) (there x,A∈Γ) (_∷_ (refl , _) Γ∼Δ) with lemma Γok Δok x,A∈Γ Γ∼Δ
     ... | s , Δ⊢A:s = s , thinning (xs⊆x∷xs Δ (y , B)) Δ,y:Bok Δ⊢A:s
-  closAlphaAsg {Γ} {Δ} Γ∼Δ λ[x:A]B∼λ[x':A']B'@(∼λ {.x} {x'} {w} {.A} {A'} {.M} {M'} A∼A' w#ƛxM w#ƛx'M' M[x=w]∼M'[x'=w]) (⊢abs {x} {y} {s} {A} {B} {M} h2 Γ⊢Π[x:A]B:s) =
-    ⊢conv (⊢abs {Δ} {x'} {y} {s} {A'} {B} goal Δ⊢Π[y:A']B:s) (lemma∼α⊆≃β (∼σ Π[y:A]B∼Π[y:A']B)) Δ⊢Π[y:A]B:s
+  closAlphaAsg {Γ} {Δ} Γ∼Δ λ[x:A]B∼λ[x':A']B'@(∼λ {.x} {x'} {w} {.A} {A'} {.M} {M'} A∼A' w#ƛxM w#ƛx'M' M[x=w]∼M'[x'=w])
+    (⊢abs {x} {y} {s₁} {s₂} {s₃} {A} {B} {M} Rs₁s₂s₂ Γ⊢A:s₁ h2 h1) =
+    ⊢conv (⊢abs {Δ} {x'} {y} {s₁} {s₂} {s₃} {A'} {B} Rs₁s₂s₂  Δ⊢A':s₁ goal goal₀) (lemma∼α⊆≃β (∼σ Π[y:A]B∼Π[y:A']B)) Δ⊢Π[y:A]B:s₃
     where
     Π[y:A]B∼Π[y:A']B : Π[ y ∶ A ] B ∼α Π[ y ∶ A' ] B
     Π[y:A]B∼Π[y:A']B = ∼Π A∼A' (∉- (fv B)) (∉- (fv B)) PEq.refl
@@ -94,13 +88,18 @@ module PTS.ClosureAlpha {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 
     goal z z∉Δ = closAlphaAsg (_∷_ (PEq.refl , A∼A') Γ∼Δ) (≡⇒∼ M[x=z]∼M'[x'=z]) (h2 z z∉Γ)
       where
       z∉Γ : z ∉ dom Γ
-      z∉Γ = lemma∉≈α z∉Δ Γ∼Δ    
+      z∉Γ = lemma∉≈α z∉Δ Γ∼Δ
       M[x=z]∼M'[x'=z] : M ∙ ι ‚ x := v z ≡ M' ∙ ι ‚ x' := v z
       M[x=z]∼M'[x'=z] = invλ {y = z} λ[x:A]B∼λ[x':A']B'
-    Δ⊢Π[y:A]B:s : Δ ⊢ Π[ y ∶ A ] B ∶ c s
-    Δ⊢Π[y:A]B:s = closAlphaAsg Γ∼Δ ∼ρ Γ⊢Π[x:A]B:s
-    Δ⊢Π[y:A']B:s : Δ ⊢ Π[ y ∶ A' ] B ∶ c s
-    Δ⊢Π[y:A']B:s = closAlphaAsg Γ∼Δ (lemma∼Π A∼A' ∼ρ) Γ⊢Π[x:A]B:s    
+    goal₀ : ∀ z → z ∉ dom Δ → Δ ‚ z ∶ A' ⊢ B [ y := v z ] ∶ c s₂
+    goal₀ z z∉Δ = closAlphaAsg (_∷_ (PEq.refl , A∼A') Γ∼Δ) ∼ρ (h1 z z∉Γ)
+      where
+      z∉Γ : z ∉ dom Γ
+      z∉Γ = lemma∉≈α z∉Δ Γ∼Δ         
+    Δ⊢A':s₁ : Δ ⊢ A' ∶ c s₁
+    Δ⊢A':s₁ = closAlphaAsg Γ∼Δ A∼A' Γ⊢A:s₁
+    Δ⊢Π[y:A]B:s₃ : Δ ⊢ Π[ y ∶ A ] B ∶ c s₃
+    Δ⊢Π[y:A]B:s₃ = ⊢prod Rs₁s₂s₂ (closAlphaAsg Γ∼Δ ∼ρ Γ⊢A:s₁) (λ z z∉Δ → closAlphaAsg (_∷_ (PEq.refl , ∼ρ) Γ∼Δ) ∼ρ (h1 z (lemma∉≈α z∉Δ Γ∼Δ)))
   closAlphaAsg {Γ} {Δ} Γ∼Δ (∼· {M} {M'} {N} {N'} M∼M' N∼N') (⊢app {x} {s} {A = A} {B = B} Γ⊢M:Π[x:A]B Γ⊢N:A Γ⊢[N/x]B:s) =
     ⊢conv Δ⊢M'N':[N'/x]B (lemma∼α⊆≃β (∼σ [N/x]B∼[N'/x]B)) Δ⊢[N/x]B:s
     where

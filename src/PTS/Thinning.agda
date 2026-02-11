@@ -15,6 +15,9 @@ open import Stoughton.Var
 
 module PTS.Thinning {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where 
 
+  private
+    _≟_ = IsVar._≟_ isVar
+    
   open import PTS isVar 𝒜 ℛ
 
   open import Stoughton.Syntax 𝒞 𝒱 _≟_
@@ -37,19 +40,25 @@ module PTS.Thinning {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞
   thinning : ∀ {Γ Δ M A} → Γ ⊆ Δ → Δ ok → Γ ⊢ M ∶ A → Δ ⊢ M ∶ A
   thinning {Γ} {Δ} {_} {A} Γ⊆Δ Δok (⊢var {x} _ x,A∈Γ) = ⊢var Δok (Γ⊆Δ x,A∈Γ)
   thinning _ Δok (⊢sort _ As₁s₂) = ⊢sort Δok As₁s₂
-  thinning {Γ} {Δ} Γ⊆Δ Δok (⊢abs {x} {x′} {s} {A} {B} {M} h Γ⊢Π[x':A]B:s) =
-    ⊢abs goal Δ⊢Π[x':A]B:s
+  thinning {Γ} {Δ} Γ⊆Δ Δok (⊢abs {x} {x′} {s₁} {s₂} {s₃} {A} {B} {M} ℛs₁s₂s₃ Γ⊢A:s₁ h h₀) =
+    ⊢abs ℛs₁s₂s₃ Δ⊢A:s₁ goal goal₀
     where
-    Δ⊢Π[x':A]B:s : Δ ⊢ Π[ x′ ∶ A ] B ∶ c s
-    Δ⊢Π[x':A]B:s = thinning Γ⊆Δ Δok Γ⊢Π[x':A]B:s
-    Δ⊢A:s : ∃ λ s → Δ ⊢ A ∶ c s
-    Δ⊢A:s with genProd Δ⊢Π[x':A]B:s
-    ... | s , _ , _ , _ , Δ⊢A:s , _ = s , Δ⊢A:s
+    Δ⊢A:s₁ : Δ ⊢ A ∶ c s₁
+    Δ⊢A:s₁ = thinning Γ⊆Δ Δok Γ⊢A:s₁
+    goal₀ : ∀ y → y ∉ dom Δ → Δ ‚ y ∶ A ⊢ B ∙ ι ‚ x′ := v y ∶ c s₂
+    goal₀ y y∉Δ = thinning Γ,y⊆Δ,y Δ,y:Aok (h₀ y y∉Γ)
+      where
+      Δ,y:Aok : Δ ‚ y ∶ A ok
+      Δ,y:Aok = ⊢cons Δok y∉Δ Δ⊢A:s₁
+      y∉Γ : y ∉ dom Γ
+      y∉Γ = ⊆⇒∉ Γ⊆Δ y∉Δ
+      Γ,y⊆Δ,y : (Γ ‚ y ∶ A) ⊆ (Δ ‚ y ∶ A)
+      Γ,y⊆Δ,y = ∷⁺ʳ (y , A) Γ⊆Δ     
     goal : ∀ y → y ∉ dom Δ → Δ ‚ y ∶ A ⊢ M ∙ ι ‚ x := v y ∶ B ∙ ι ‚ x′ := v y
     goal y y∉Δ = thinning Γ,y⊆Δ,y Δ,y:Aok (h y y∉Γ)
       where
       Δ,y:Aok : Δ ‚ y ∶ A ok
-      Δ,y:Aok = ⊢cons Δok y∉Δ (proj₂ Δ⊢A:s)
+      Δ,y:Aok = ⊢cons Δok y∉Δ Δ⊢A:s₁
       y∉Γ : y ∉ dom Γ
       y∉Γ = ⊆⇒∉ Γ⊆Δ y∉Δ      
       Γ,y⊆Δ,y : (Γ ‚ y ∶ A) ⊆ (Δ ‚ y ∶ A)
