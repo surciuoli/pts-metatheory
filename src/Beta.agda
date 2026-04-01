@@ -29,19 +29,19 @@ module Beta (𝒞 : Set) {𝒱} (var : IsVar 𝒱) where
 
   infix 3 _▹β_
   data _▹β_ : Λ → Λ → Set where
-    β : ∀ {x M N A} → λ[ x ∶ A ] M · N ▹β M [ x := N ]
+    β : ∀ {x M N A} → (λ[ x ∶ A ] M) · N ▹β M [ x := N ]
 
   β⁻¹preserves* : AntiPreserves* _▹β_
-  β⁻¹preserves* {x} .{λ[ y ∶ _ ] M · N} x*M[y/N] (β {y} {M} {N}) with lemmafreeσ→ₗ {x} {M} x*M[y/N]
+  β⁻¹preserves* {x} .{(λ[ y ∶ _ ] M) · N} x*M[y/N] (β {y} {M} {N}) with lemmafreeσ→ₗ {x} {M} x*M[y/N]
   ...  | z , z*M , x*z[y/N] with y ≟ z
-  β⁻¹preserves* {x} .{λ[ y ∶ A ] M · N} x*M[y/N] (β {y} {M} {N} {A}) | .y , y*M , x*N           | yes refl = ∈-++⁺ʳ (fv (λ[ y ∶ A ] M)) x*N
-  β⁻¹preserves* {x} .{λ[ y ∶ A ] M · N} x*M[y/N] (β {y} {M} {N} {A})     | .x , x*M , here refl | no y≢z = ∈-++⁺ˡ (∈-++⁺ʳ (fv A) (lemma∈-≢ x*M y≢z)) 
+  β⁻¹preserves* {x} .{(λ[ y ∶ A ] M) · N} x*M[y/N] (β {y} {M} {N} {A}) | .y , y*M , x*N           | yes refl = ∈-++⁺ʳ (fv (λ[ y ∶ A ] M)) x*N
+  β⁻¹preserves* {x} .{(λ[ y ∶ A ] M) · N} x*M[y/N] (β {y} {M} {N} {A})     | .x , x*M , here refl | no y≢z = ∈-++⁺ˡ (∈-++⁺ʳ (fv A) (lemma∈-≢ x*M y≢z)) 
 
   βpreserves# : Preserves# _▹β_
   βpreserves# = antipres*⇒pres# {_▹β_} β⁻¹preserves*
   
   compat∙β : Compat∙ _▹β_
-  compat∙β .{λ[ x ∶ A ] M · N} {_} {σ} (β {x} {M} {N} {A}) = (M ∙ σ ‚ x := v y) ∙ ι ‚ y := (N ∙ σ) , β , aux
+  compat∙β .{(λ[ x ∶ A ] M) · N} {_} {σ} (β {x} {M} {N} {A}) = (M ∙ σ ‚ x := v y) ∙ ι ‚ y := (N ∙ σ) , β , aux
     where
     open PreR ≈-preorder∼
     y : 𝒱
@@ -56,7 +56,7 @@ module Beta (𝒞 : Set) {𝒱} (var : IsVar 𝒱) where
       ∎
 
   commutβα : CommAlpha _▹β_
-  commutβα .{λ[ x ∶ A ] M · N} .{λ[ x′ ∶ A′ ] M′ · N′} (∼· {_} {_} {N} .{N′} (∼λ {x} .{x′} {y} {A} .{A′} {M} .{M′} A∼A′ y#λxM y#λx′M′ M[y/x]∼M′[y/x′]) N∼N′) (β {x′} {M′} {N′} {A′}) =
+  commutβα .{(λ[ x ∶ A ] M) · N} .{(λ[ x′ ∶ A′ ] M′) · N′} (∼· {_} {_} {N} .{N′} (∼λ {x} .{x′} {y} {A} .{A′} {M} .{M′} A∼A′ y#λxM y#λx′M′ M[y/x]∼M′[y/x′]) N∼N′) (β {x′} {M′} {N′} {A′}) =
     M ∙ ι ‚ x := N , β , aux
     where
     open PreR ≈-preorder∼

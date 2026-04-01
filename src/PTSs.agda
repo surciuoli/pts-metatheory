@@ -110,25 +110,16 @@ module PTSs {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set
 
   genAbs = genLam
 
-{-
-  genAbsG : ∀ {Γ x A M C} → Γ ⊢ₛ λ[ x ∶ A ] M ∶ C
-         → ∀ y → y ∉ dom Γ 
-         → ∃₃ λ s x' B 
-         → y ∉ fv M - x
-         × y ∉ fv B - x'
-         × Γ ‚ y ∶ A ⊢ₛ M [ x := v y ] ∶ B [ x' := v y ]
-         × Γ ⊢ₛ Π[ x' ∶ A ] B ∶ c s
-         × C ≃β Π[ x' ∶ A ] B
-  genAbsG {y = y} (⊢abs {x} {x'} {z} {s} {A} {B} y∉fvM-x y∉fvB-x' Γ,y:A⊢M[x=y]:B[x'=y] Γ⊢Π[y:A]B:s) with z ≟ y
-  ... | yes _ = ?
-  ... | no _ = ?
-    -- s , x' , y , B , y∉fvM-x , y∉fvB-x' , Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[y:A]B:s , Eq.reflexive (_∼α_ ∪ _→β_)
-  genAbsG (⊢conv Γ⊢λ[x:A]M:C C≃D _) with genLam Γ⊢λ[x:A]M:C
-  ... |  s ,  x' , y , B , y∉fvM-x , y∉fvB-x' , Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[y:A]B:s , D≃Π[x':A]B =
-    s , x' , y , B , y∉fvM-x , y∉fvB-x' , Γ,y:A⊢M[x=y]:B[x'=y] , Γ⊢Π[y:A]B:s
-    , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C≃D) D≃Π[x':A]B
--}
-
+  genApp : ∀ {Γ M N C} → Γ ⊢ₛ M · N ∶ C
+         → ∃₃ λ x A B
+         → Γ ⊢ₛ M ∶ Π[ x ∶ A ] B
+         × Γ ⊢ₛ N ∶ A
+         × C ≃β B [ x := N ]
+  genApp (⊢app {x} {M} {N} {A} {B} Γ⊢M:Π[x:A]B Γ⊢N:A) = x , A , B , Γ⊢M:Π[x:A]B , Γ⊢N:A , Eq.reflexive (_∼α_ ∪ _→β_)
+  genApp (⊢conv Γ⊢MN:D D≃C _) with genApp Γ⊢MN:D
+  ... | x , A , B , Γ⊢M:Π[x:A]B , Γ⊢N:A , D≃B[x=N] =
+    x , A , B , Γ⊢M:Π[x:A]B , Γ⊢N:A , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) D≃C) D≃B[x=N]
+    
   genProd : ∀ {Γ x A B C} → Γ ⊢ₛ Π[ x ∶ A ] B ∶ C
         → ∃₄ λ s₁ s₂ s₃ y
         → ℛ s₁ s₂ s₃

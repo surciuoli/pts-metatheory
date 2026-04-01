@@ -32,6 +32,8 @@ module BetaReduction (𝒞 : Set) {𝒱 : Set} (var : IsVar 𝒱) where
   _→β*_ = Star (_∼α_ ∪ _→β_)
   _→β*₀_ = Star _→β_
 
+  -- compatibility lemmas
+
   abs-star-ty : ∀ {x A B M} → A →β*₀ B → λ[ x ∶ A ] M →β*₀ λ[ x ∶ B ] M
   abs-star-ty ε = ε
   abs-star-ty (A→C ◅ C→β*B)  = →λL A→C ◅ abs-star-ty C→β*B    
@@ -55,7 +57,21 @@ module BetaReduction (𝒞 : Set) {𝒱 : Set} (var : IsVar 𝒱) where
   app-star-r : ∀ {M N P} → N →β*₀ P → M · N →β*₀ M · P
   app-star-r ε                 = ε 
   app-star-r (t→t' ◅ t'→β*t'')  = →·R t→t' ◅ app-star-r t'→β*t''
-  
+
+  -- inversion lemmas:
+
+  genRedProd : ∀ {x A₁ B₁ C}
+             → Π[ x ∶ A₁ ] B₁ →β*₀ C
+             → ∃₂ λ A₂ B₂ 
+             → C ≡ Π[ x ∶ A₂ ] B₂ 
+             × A₁ →β*₀ A₂
+             × B₁ →β*₀ B₂
+  genRedProd {x} {A} {B} ε = A , B , refl , ε , ε
+  genRedProd (→ΠL {x} {A} {A'} {B} A→A' ◅ Π[x:A']B→*C) with genRedProd Π[x:A']B→*C
+  ... | A″ , B' , refl , A'→*A″ , B→*B' = A″ , B' , refl , A→A' ◅ A'→*A″ , B→*B'
+  genRedProd (→ΠR {x} {A} {B} {B'} B→B' ◅ Π[x:A]B'→*C) with genRedProd Π[x:A]B'→*C
+  ... | A' , B″ , refl , A→*A' , B'→*B″ = A' , B″ , refl , A→*A' , B→B' ◅ B'→*B″
+
   open OneStepBeta.PreservesFreshness _▹β_ βpreserves# using (∈→C-) renaming (lemma*→C⁻¹ to lemma*→β⁻¹; lemma#→C to lemma#→β) public
   open import Definitions 𝒞 var
 
