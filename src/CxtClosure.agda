@@ -5,7 +5,7 @@ import Stoughton.Syntax as Syntax
 open import Stoughton.Var
 
 -- rename to CxtClosure
-module CxtClosure (𝒞 : Set) {𝒱} (var : IsVar 𝒱) (_▹_ : Rel (Syntax.Λ 𝒞 𝒱 (IsVar._≟_ var)) 0ℓ) where
+module CxtClosure (𝒞 : Set) {𝒱} (var : Enum 𝒱) (_▹_ : Rel (Syntax.Λ 𝒞 𝒱 (Enum._≟_ var)) 0ℓ) where
 
   open import Data.Product
   open import Data.Nat hiding (_*_; _≟_)
@@ -20,14 +20,14 @@ module CxtClosure (𝒞 : Set) {𝒱} (var : IsVar 𝒱) (_▹_ : Rel (Syntax.Λ
   open import Data.Sum
   
   private
-    _≟_ = IsVar._≟_ var
+    _≟_ = Enum._≟_ var
   
   open Syntax 𝒞 𝒱 _≟_
   open import Stoughton.Substitution 𝒞 var
   open import Stoughton.SubstitutionLemmas 𝒞 var
   open import Stoughton.Alpha 𝒞 var
   open import Definitions 𝒞 var
-  open import Stoughton.Chi (IsVar.encode var) (IsVar.decode var) (IsVar.inverse var)
+  open import Stoughton.Chi (Enum.encode var) (Enum.decode var) (Enum.inverse var)
 
   -- Rename to CxtClosure
   infix 3 _→C_

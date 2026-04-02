@@ -11,12 +11,12 @@ open import Level
 
 open import Stoughton.Var
 
-module BetaReduction (𝒞 : Set) {𝒱 : Set} (var : IsVar 𝒱) where
+module BetaReduction (𝒞 : Set) {𝒱 : Set} (var : Enum 𝒱) where
 
   private
-    _≟_ = IsVar._≟_ var
+    _≟_ = Enum._≟_ var
 
-  open import Stoughton.Chi (IsVar.encode var) (IsVar.decode var) (IsVar.inverse var)
+  open import Stoughton.Chi (Enum.encode var) (Enum.decode var) (Enum.inverse var)
   open import Stoughton.Syntax 𝒞 𝒱 _≟_
   open import Stoughton.Alpha 𝒞 var
   open import Stoughton.Substitution 𝒞 var

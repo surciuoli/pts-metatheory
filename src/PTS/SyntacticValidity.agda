@@ -9,10 +9,10 @@ open import Data.List.Relation.Binary.Subset.Propositional.Properties
 
 open import Stoughton.Var
 
-module PTS.SyntacticValidity {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
+module PTS.SyntacticValidity {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
 
   private
-    _≟_ = IsVar._≟_ isVar
+    _≟_ = Enum._≟_ isVar
     
   open import PTS isVar 𝒜 ℛ
   open import PTS.Thinning isVar 𝒜 ℛ
@@ -33,11 +33,11 @@ module PTS.SyntacticValidity {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞
     Γ⊆Γ,y:B : Γ ⊆ (Γ ‚ y ∶ B)
     Γ⊆Γ,y:B = xs⊆x∷xs Γ (y , B)  
 
-  syntacticValidity : ∀ {Γ M A} → Γ ⊢ M ∶ A → ∃ λ s → A ≡ c s ⊎ Γ ⊢ A ∶ c s
+  syntacticValidity : ∀ {Γ M A} → Γ ⊢ M ∶ A → ∃ λ s → A ≡ c s ⊎ Γ ⊢ A ∶ c s -- x A ≢ s'
   syntacticValidity {Γ} (⊢var Γok x,A∈Γ) with validDecl Γok x,A∈Γ
   ... | s , Γ⊢A:s = s , inj₂ Γ⊢A:s
   syntacticValidity {Γ} Γ⊢s₁:s₂@(⊢sort {s₂ = s₂} _ _) = s₂ , inj₁ refl
-  syntacticValidity {Γ} (⊢abs {x} {y} {s₁} {s₂} {s₃} Rs₁s₂s₃ Γ⊢A:s₁ _ ∀z∉Γ→Γ,z:A⊢B[y=z]:s₂ ) =
+  syntacticValidity {Γ} (⊢abs {x} {y} {s₁} {s₂} {s₃} Rs₁s₂s₃ Γ⊢A:s₁ _ ∀z∉Γ→Γ,z:A⊢B[y=z]:s₂) =
     s₃ , inj₂ (⊢prod Rs₁s₂s₃ Γ⊢A:s₁ ∀z∉Γ→Γ,z:A⊢B[y=z]:s₂)
   syntacticValidity {Γ} (⊢app {s = s} _ _ Γ⊢[N/x]B:s) = s , inj₂ Γ⊢[N/x]B:s
   syntacticValidity (⊢conv {s = s} _ _ Γ⊢A:s) = s , inj₂ Γ⊢A:s

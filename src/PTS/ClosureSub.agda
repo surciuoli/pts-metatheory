@@ -14,10 +14,10 @@ import Relation.Binary.Reasoning.Preorder as PreR
 
 open import Stoughton.Var
  
-module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
+module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
 
   private
-    _≟_ = IsVar._≟_ isVar
+    _≟_ = Enum._≟_ isVar
     
   open import PTS isVar 𝒜 ℛ
   open import PTS.Thinning isVar 𝒜 ℛ
@@ -26,7 +26,7 @@ module PTS.ClosureSub {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
   
   open import Stoughton.Alpha 𝒞 isVar
   open import Beta 𝒞 isVar
-  open import Stoughton.Chi (IsVar.encode isVar) (IsVar.decode isVar) (IsVar.inverse isVar)
+  open import Stoughton.Chi (Enum.encode isVar) (Enum.decode isVar) (Enum.inverse isVar)
   open import Stoughton.Substitution 𝒞 isVar
   open import Stoughton.SubstitutionLemmas 𝒞 isVar
   open import Stoughton.Syntax 𝒞 𝒱 _≟_ hiding (length)

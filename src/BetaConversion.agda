@@ -10,9 +10,9 @@ open import Relation.Binary.Construct.Closure.ReflexiveTransitive
 
 open import Stoughton.Var
 
-module BetaConversion (𝒞 : Set) {𝒱 : Set} (var : IsVar 𝒱) where
+module BetaConversion (𝒞 : Set) {𝒱 : Set} (var : Enum 𝒱) where
 
-  open import Stoughton.Syntax 𝒞 𝒱 (IsVar._≟_ var)  
+  open import Stoughton.Syntax 𝒞 𝒱 (Enum._≟_ var)  
   open import Stoughton.Alpha 𝒞 var
   open import Stoughton.Substitution 𝒞 var      
   open import Stoughton.SubstitutionLemmas 𝒞 var

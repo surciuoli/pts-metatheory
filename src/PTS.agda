@@ -15,12 +15,12 @@ open import Relation.Binary.Construct.Union
 
 open import Stoughton.Var
 
-module PTS {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
+module PTS {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
 
   private
-    _≟_ = IsVar._≟_ isVar
+    _≟_ = Enum._≟_ isVar
   
-  open import Stoughton.Chi (IsVar.encode isVar) (IsVar.decode isVar) (IsVar.inverse isVar)
+  open import Stoughton.Chi (Enum.encode isVar) (Enum.decode isVar) (Enum.inverse isVar)
   open import Stoughton.Syntax 𝒞 𝒱 _≟_
   open import Stoughton.Substitution 𝒞 isVar 
   open import Stoughton.SubstitutionLemmas 𝒞 isVar

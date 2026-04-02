@@ -4,13 +4,13 @@ open import Relation.Binary.PropositionalEquality
 
 open import Stoughton.Var
 
-module Context.Properties (𝒞 : Set) {𝒱 : Set} (var : IsVar 𝒱) where
+module Context.Properties (𝒞 : Set) {𝒱 : Set} (var : Enum 𝒱) where
 
-  open import Stoughton.Syntax 𝒞 𝒱 (IsVar._≟_ var)
+  open import Stoughton.Syntax 𝒞 𝒱 (Enum._≟_ var)
   open import Stoughton.Alpha 𝒞 var
   open import Stoughton.SubstitutionLemmas 𝒞 var
   
-  open import Context 𝒱 Λ (IsVar._≟_ var)
+  open import Context 𝒱 Λ (Enum._≟_ var)
 
   infix 1 _≈α_
   _≈α_ : Cxt → Cxt → Set

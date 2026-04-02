@@ -14,17 +14,17 @@ open import Data.List.Relation.Binary.Subset.Propositional.Properties
 
 open import Stoughton.Var
 
-module PTS.ClosureAlpha {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
+module PTS.ClosureAlpha {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
 
   private
-    _≟_ = IsVar._≟_ isVar
+    _≟_ = Enum._≟_ isVar
     
   open import PTS isVar 𝒜 ℛ
   open import PTS.Thinning isVar 𝒜 ℛ
   
   open import Stoughton.Alpha 𝒞 isVar
   open import Stoughton.Syntax 𝒞 𝒱 _≟_
-  open import Context 𝒱 Λ (IsVar._≟_ isVar)
+  open import Context 𝒱 Λ (Enum._≟_ isVar)
   open import Context.Properties 𝒞 isVar
   open import Stoughton.Substitution 𝒞 isVar
   open import Stoughton.SubstitutionLemmas 𝒞 isVar

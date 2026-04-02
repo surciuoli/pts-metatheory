@@ -13,10 +13,10 @@ open import Data.List.Relation.Binary.Subset.Propositional.Properties
 
 open import Stoughton.Var
 
-module PTS.Thinning {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where 
+module PTS.Thinning {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where 
 
   private
-    _≟_ = IsVar._≟_ isVar
+    _≟_ = Enum._≟_ isVar
     
   open import PTS isVar 𝒜 ℛ
 

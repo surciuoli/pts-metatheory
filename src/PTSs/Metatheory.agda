@@ -9,10 +9,10 @@ open import Relation.Binary.Construct.Union
 
 open import Stoughton.Var
 
-module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
+module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
 
   private
-    _≟_ = IsVar._≟_ isVar
+    _≟_ = Enum._≟_ isVar
     
   open import PTS isVar 𝒜 ℛ renaming (genProd to genProdInf; freshAsg to freshAsgInf) hiding (validCxt; genLam)
   open import PTSs isVar 𝒜 ℛ 
@@ -27,7 +27,7 @@ module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → �
   open import Beta 𝒞 isVar  
   open import Context 𝒱 Λ _≟_
   open import Context.Properties 𝒞 isVar  
-  open import Stoughton.Chi (IsVar.encode isVar) (IsVar.decode isVar) (IsVar.inverse isVar)  
+  open import Stoughton.Chi (Enum.encode isVar) (Enum.decode isVar) (Enum.inverse isVar)  
   open import BetaConversion 𝒞 isVar
   open import BetaReduction 𝒞 isVar
 

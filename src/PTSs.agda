@@ -10,10 +10,10 @@ open import Relation.Nullary
 
 open import Stoughton.Var
 
-module PTSs {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
+module PTSs {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
 
   private
-    _≟_ = IsVar._≟_ isVar
+    _≟_ = Enum._≟_ isVar
   
   open import Stoughton.Syntax 𝒞 𝒱 _≟_
   open import Stoughton.Substitution 𝒞 isVar
@@ -21,7 +21,7 @@ module PTSs {𝒞 𝒱 : Set} (isVar : IsVar 𝒱) (𝒜 : 𝒞 → 𝒞 → Set
   open import Stoughton.Alpha 𝒞 isVar
   open import Beta 𝒞 isVar  
   open import Context 𝒱 Λ _≟_
-  open import Stoughton.Chi (IsVar.encode isVar) (IsVar.decode isVar) (IsVar.inverse isVar)  
+  open import Stoughton.Chi (Enum.encode isVar) (Enum.decode isVar) (Enum.inverse isVar)  
   open import BetaConversion 𝒞 isVar
   open import BetaReduction 𝒞 isVar
   open import Utils

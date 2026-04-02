@@ -1,13 +1,13 @@
 open import Stoughton.Var
 
-module Definitions (𝒞 : Set) {𝒱} (var : IsVar 𝒱) where
+module Definitions (𝒞 : Set) {𝒱} (var : Enum 𝒱) where
 
   open import Data.Product
   open import Data.Empty
   open import Relation.Nullary
-  open import Data.List.Membership.DecPropositional (IsVar._≟_ var)
+  open import Data.List.Membership.DecPropositional (Enum._≟_ var)
   
-  open import Stoughton.Syntax 𝒞 𝒱 (IsVar._≟_ var)
+  open import Stoughton.Syntax 𝒞 𝒱 (Enum._≟_ var)
   open import Stoughton.Substitution 𝒞 var
   open import Stoughton.SubstitutionLemmas 𝒞 var
   open import Stoughton.Alpha 𝒞 var
