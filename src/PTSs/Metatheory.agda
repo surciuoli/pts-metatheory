@@ -163,13 +163,6 @@ module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → �
     closureAlpha : ∀ {Γ Δ M N A B} → Γ ≈α Δ → M ∼α N → A ∼α B → Γ ⊢ₛ M ∶ A → Δ ⊢ₛ N ∶ B
     closureAlpha Γ∼Δ M∼N A∼B 𝒟 = ptsSound (closureAlphaInf Γ∼Δ M∼N A∼B (ptsComplete 𝒟))
 
-    -- infix 2 _∶_⇀_
-    -- _∶_⇀ₛ_ : Sub → Cxt → Cxt → Set
-    -- σ ∶ Γ ⇀ₛ Δ = ∀ {x A} → (x , A) ∈ Γ → Δ ⊢ₛ σ x ∶ A ∙ σ
-      
-    -- closureSub : ∀ {σ Γ Δ M A} → Γ ⊢ₛ M ∶ A → σ ∶ Γ ⇀ Δ → Δ okₛ → Δ ⊢ₛ M ∙ σ ∶ A ∙ σ
-    -- closureSub 𝒟 𝓈 ℰ = ptsSound (closureSubInf 𝓈 (ptsCompleteCxt ℰ) (ptsComplete 𝒟))
-
     cut :  ∀ {Γ M N A B x} → Γ ‚ x ∶ A ⊢ₛ M ∶ B → Γ ⊢ₛ N ∶ A → Γ ⊢ₛ M [ x := N ] ∶ B [ x := N ]
     cut 𝒟 ℰ = ptsSound (cutInf (ptsComplete 𝒟) (ptsComplete ℰ))
 
