@@ -1,4 +1,4 @@
 name: pts-metatheory
-depend: standard-library-1.7.1 stoughton-pts
+depend: standard-library-1.7.1 stoughton-pi
 include: src
 
