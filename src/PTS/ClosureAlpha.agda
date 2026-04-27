@@ -30,7 +30,7 @@ module PTS.ClosureAlpha {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → �
   open import Stoughton.SubstitutionLemmas 𝒞 isVar
   open import BetaConversion 𝒞 isVar
   
-  open import Relation.Binary.PreorderReasoning ≈-preorder∼
+  open import Relation.Binary.Reasoning.Preorder ≈-preorder∼
 
   lemma∉≈α : ∀ {y Γ Δ} → y ∉ dom Δ → Γ ≈α Δ → y ∉ dom Γ
   lemma∉≈α y∉Γ′ [] = λ ()
