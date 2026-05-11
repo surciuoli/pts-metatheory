@@ -33,22 +33,6 @@ module PTS {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) 
   open import BetaReduction 𝒞 isVar
   open import Utils
   
-  lemma∉′∷ : {x y : 𝒱}{Γ : List 𝒱} → x ∉ y ∷ Γ → x ∉ Γ 
-  lemma∉′∷ h a = h (Any.there a)
-
-  lemma∉′∷≢ : {x y : 𝒱}{Γ : List 𝒱} → x ∉ y ∷ Γ → x ≢ y
-  lemma∉′∷≢ {x} {y} x∉y::Γ with x ≟ y
-  lemma∉′∷≢ {x} {.x} x∉x::Γ | yes refl = ⊥-elim (x∉x::Γ (Any.here refl))
-  lemma∉′∷≢ {x} {y} _ | no x≢y = x≢y
-
-  lemma∈‚≢ : {z y : 𝒱}{Γ : List 𝒱} → z ∈ y ∷ Γ → z ≢ y → z ∈ Γ
-  lemma∈‚≢ (here z=y) z≢y = ⊥-elim (z≢y z=y)
-  lemma∈‚≢ (there z∈Γ) _ = z∈Γ
-
-  lemma-z≢x : ∀ {x z Γ} → z ∈ Γ → x ∉ Γ → z ≢ x
-  lemma-z≢x {x} {z} x∈Γ z∉Γ with z ≟ x
-  lemma-z≢x {x} {.x} x∈Γ x∉Γ | yes refl = ⊥-elim (x∉Γ x∈Γ)
-  ... | no z≢x = z≢x
 
   infix 3 _ok 
   infix 3 _⊢_∶_ 
@@ -90,10 +74,6 @@ module PTS {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) 
           → A ≃β B
           → Γ ⊢ B ∶ c s
           → Γ ⊢ M ∶ B
-
-  inCxtInDom : ∀ {x A Γ} → (x , A) ∈ Γ → x ∈ dom Γ
-  inCxtInDom (here refl) = here refl
-  inCxtInDom (there x,A∈Γ) = there (inCxtInDom x,A∈Γ)
 
   freeCxt : ∀ {Γ y A w} → Γ ok → (y , A) ∈ Γ → w * A → w ∈ dom Γ
   freeAsg : ∀ {Γ M A w} → Γ ⊢ M ∶ A → w * M · A → w ∈ dom Γ

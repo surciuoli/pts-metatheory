@@ -7,6 +7,8 @@ open import Data.List.Relation.Binary.Subset.Propositional
 open import Relation.Binary.Construct.Closure.Equivalence as Eq
 open import Relation.Binary.Construct.Union
 open import Relation.Nullary
+open import Data.List.Relation.Unary.Any
+open import Data.Empty
 
 open import Stoughton.Var
 
@@ -20,7 +22,7 @@ module PTSs {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set)
   open import Stoughton.SubstitutionLemmas 𝒞 isVar
   open import Stoughton.Alpha 𝒞 isVar
   open import Beta 𝒞 isVar  
-  open import Context 𝒱 Λ _≟_
+  open import Context 𝒱 Λ _≟_  
   open import Stoughton.Chi (Enum.encode isVar) (Enum.decode isVar) (Enum.inverse isVar)  
   open import BetaConversion 𝒞 isVar
   open import BetaReduction 𝒞 isVar
@@ -132,3 +134,12 @@ module PTSs {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set)
   genProd (⊢conv Γ⊢Π[x:A]B:C C=D _) with genProd Γ⊢Π[x:A]B:C
   ... | s₁ , s₂ , s₃ , y , Rs₁s₂s₃ , Γ⊢A:s₁ , y∉fvB-x , Γ,y:A⊢B[x=y]:s₂ , C=s₃ =
     s₁ , s₂ , s₃ , y , Rs₁s₂s₃ , Γ⊢A:s₁ , y∉fvB-x , Γ,y:A⊢B[x=y]:s₂ , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C=D) C=s₃
+
+  cxtInj : ∀ {x A B Γ} → (x , A) ∈ Γ → (x , B) ∈ Γ → Γ okₛ → A ≡ B
+  cxtInj {.x} {.A} {.A} (here refl) (here refl) (⊢cons {x = x} {A = A} _ _ _) = refl
+  cxtInj {.x} {.A} {B} (here refl) (there x,B∈Γ) (⊢cons {x = x} {A = A} _ x∉domΓ _) =
+    ⊥-elim (x∉domΓ (inCxtInDom x,B∈Γ))
+  cxtInj {.x} {A} {.B} (there x,A∈Γ) (here refl) (⊢cons {x = x} {A = B} _ x∉domΓ _) =
+    ⊥-elim (x∉domΓ (inCxtInDom x,A∈Γ))  
+  cxtInj (there x,A∈Γ) (there x,B∈Γ) (⊢cons Γok _ _) = cxtInj x,A∈Γ x,B∈Γ Γok   
+  

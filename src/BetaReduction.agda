@@ -8,6 +8,7 @@ open import Data.List.Membership.Propositional
 open import Relation.Binary.PropositionalEquality
 open import Data.Empty
 open import Level
+open import Relation.Binary
 
 open import Stoughton.Var
 
@@ -49,6 +50,9 @@ module BetaReduction (𝒞 : Set) {𝒱 : Set} (var : Enum 𝒱) where
   pi-star : ∀ {x A M N} → M →β*₀ N → Π[ x ∶ A ] M →β*₀ Π[ x ∶ A ] N
   pi-star ε = ε
   pi-star (t→t' ◅ t'→β*t'')  = →ΠR t→t' ◅ pi-star t'→β*t''    
+
+  compatManyStepProd : ∀ {x A B M N} → A →β*₀ B → M →β*₀ N → Π[ x ∶ A ] M →β*₀ Π[ x ∶ B ] N
+  compatManyStepProd A→B M→N = pi-star-ty A→B ◅◅ pi-star M→N
 
   app-star-l : ∀ {M N P} → M →β*₀ P → M · N →β*₀ P · N
   app-star-l ε                 = ε
@@ -103,6 +107,7 @@ module BetaReduction (𝒞 : Set) {𝒱 : Set} (var : Enum 𝒱) where
   compatRedsSub (M→P ◅ P→*N) with compatRedSub M→P | compatRedsSub P→*N
   ... | Q , Mσ→Q , Q∼Pσ | Q' , Pσ→*Q' , Q'∼Nσ with manyStepCommutesAlpha Q∼Pσ Pσ→*Q'
   ... | R , Q→*R , R∼Q' = R , Mσ→Q ◅ Q→*R , ∼τ R∼Q' Q'∼Nσ
-
-  ∃₃ : ∀ {a b c d} {A : Set a} {B : A → Set b} {C : (x : A) → B x → Set c} (D : (x : A) → (y : B x) → C x y → Set d) → Set (a ⊔ b ⊔ c ⊔ d)
-  ∃₃ D = ∃ λ a → ∃ λ b → ∃ λ c → D a b c
+  
+  →β*₀⇒→β* : _→β*₀_ ⇒ _→β*_
+  →β*₀⇒→β* ε = ε
+  →β*₀⇒→β* (e ◅ d) = inj₂ e ◅ →β*₀⇒→β* d

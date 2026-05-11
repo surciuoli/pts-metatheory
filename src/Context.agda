@@ -31,3 +31,23 @@ module Context (K : Set) (D : Set) (_≟_ : Decidable {A = K} _≡_)  where
   lemma∉‚ {x} {.x} x∉Γ,y x∈Γ | yes refl = x∉Γ,y (here refl)
   ... | no x≢y = x∉y,Γ (there x∈Γ)
 
+  inCxtInDom : ∀ {x A Γ} → (x , A) ∈ Γ → x ∈ dom Γ
+  inCxtInDom (here refl) = here refl
+  inCxtInDom (there x,A∈Γ) = there (inCxtInDom x,A∈Γ)
+
+  lemma∉′∷ : {x y : K}{Γ : List K} → x ∉ y ∷ Γ → x ∉ Γ 
+  lemma∉′∷ h a = h (Any.there a)
+
+  lemma∉′∷≢ : {x y : K}{Γ : List K} → x ∉ y ∷ Γ → x ≢ y
+  lemma∉′∷≢ {x} {y} x∉y::Γ with x ≟ y
+  lemma∉′∷≢ {x} {.x} x∉x::Γ | yes refl = ⊥-elim (x∉x::Γ (Any.here refl))
+  lemma∉′∷≢ {x} {y} _ | no x≢y = x≢y
+
+  lemma∈‚≢ : {z y : K}{Γ : List K} → z ∈ y ∷ Γ → z ≢ y → z ∈ Γ
+  lemma∈‚≢ (here z=y) z≢y = ⊥-elim (z≢y z=y)
+  lemma∈‚≢ (there z∈Γ) _ = z∈Γ
+
+  lemma-z≢x : ∀ {x z Γ} → z ∈ Γ → x ∉ Γ → z ≢ x
+  lemma-z≢x {x} {z} x∈Γ z∉Γ with z ≟ x
+  lemma-z≢x {x} {.x} x∈Γ x∉Γ | yes refl = ⊥-elim (x∉Γ x∈Γ)
+  ... | no z≢x = z≢x

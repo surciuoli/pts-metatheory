@@ -3,6 +3,9 @@ open import Level
 
 module Utils where
 
+  ∃₃ : ∀ {a b c d} {A : Set a} {B : A → Set b} {C : (x : A) → B x → Set c} (D : (x : A) → (y : B x) → C x y → Set d) → Set (a ⊔ b ⊔ c ⊔ d)
+  ∃₃ D = ∃ λ a → ∃ λ b → ∃ λ c → D a b c
+  
   ∃₄ : ∀ {a b c d e} {A : Set a} {B : A → Set b} {C : (x : A) → B x → Set c} {D : (x : A) → (y : B x) → C x y → Set d}
        (E : (x : A) → (y : B x) → (z : C x y) → D x y z → Set e) → Set (a ⊔ b ⊔ c ⊔ d ⊔ e)
   ∃₄ E = ∃ λ a → ∃ λ b → ∃ λ c → ∃ λ d → E a b c d
