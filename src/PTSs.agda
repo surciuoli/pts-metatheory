@@ -142,4 +142,3 @@ module PTSs {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set)
   cxtInj {.x} {A} {.B} (there x,A∈Γ) (here refl) (⊢cons {x = x} {A = B} _ x∉domΓ _) =
     ⊥-elim (x∉domΓ (inCxtInDom x,A∈Γ))  
   cxtInj (there x,A∈Γ) (there x,B∈Γ) (⊢cons Γok _ _) = cxtInj x,A∈Γ x,B∈Γ Γok   
-  

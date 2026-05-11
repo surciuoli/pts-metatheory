@@ -158,8 +158,9 @@ module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → �
   
     open import PTS.Thinning isVar 𝒜 ℛ renaming (thinning to thinningInf)
     open import PTS.ClosureAlpha isVar 𝒜 ℛ renaming (closureAlpha to closureAlphaInf) public 
-
-    thinning : ∀ {Γ Δ M A} →  Γ ⊆ Δ → Δ okₛ → Γ ⊢ₛ M ∶ A → Δ ⊢ₛ M ∶ A
+    open import Data.List.Relation.Binary.Subset.Propositional.Properties
+    
+    thinning : ∀ {Γ Δ M A} → Γ ⊆ Δ → Δ okₛ → Γ ⊢ₛ M ∶ A → Δ ⊢ₛ M ∶ A
     thinning Γ⊆Δ Δok 𝒟 = ptsSound (thinningInf Γ⊆Δ (ptsCompleteCxt Δok) (ptsComplete 𝒟))
 
     --closureAlpha : ∀ {Γ Δ M N A B} → Γ ≈α Δ → M ∼α N → A ∼α B → Γ ⊢ₛ M ∶ A → Δ ⊢ₛ N ∶ B
@@ -180,6 +181,9 @@ module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → �
 
     freshAsg : ∀ {Γ M A w} → w ∉ dom Γ → Γ ⊢ₛ M ∶ A → w # M · A
     freshAsg w∉domΓ 𝒟 = freshAsgInf w∉domΓ (ptsComplete 𝒟)
+
+    weakening : ∀ {Γ x s M A B} → Γ ⊢ₛ M ∶ B → x ∉ dom Γ → Γ ⊢ₛ A ∶ c s → Γ ‚ x ∶ A ⊢ₛ M ∶ B
+    weakening {Γ} {x} {A = A} Γ⊢M:B x∉domΓ Γ⊢A:s = thinning (xs⊆x∷xs Γ (x , A)) (⊢cons (validCxt Γ⊢M:B) x∉domΓ Γ⊢A:s) Γ⊢M:B
 
     -- generalized inversion lemmas
 
