@@ -17,8 +17,8 @@ module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → �
   open import PTS isVar 𝒜 ℛ renaming (genProd to genProdInf; freshAsg to freshAsgInf) hiding (validCxt; genLam)
   open import PTSs isVar 𝒜 ℛ 
   open import PTS.SyntacticValidity isVar 𝒜 ℛ renaming (syntacticValidity to syntacticValidityInf)
-  open import PTS.ClosureSub isVar 𝒜 ℛ using (_∶_⇀_)
-    renaming (closureSub to closureSubInf; subUnary to subUnarInf; unaryRen to unaryRenInf; cut to cutInf) public
+  open import PTS.ClosureSub isVar 𝒜 ℛ using (_∶_⇀_; _∙∙_)
+    renaming (closureSub to closureSubInf; subUnary to subUnarInf; unaryRen to unaryRenInf; cut to cutInf; identSub to identSubInf) public
     
   open import Stoughton.Syntax 𝒞 𝒱 _≟_
   open import Stoughton.Substitution 𝒞 isVar
@@ -157,14 +157,14 @@ module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → �
   module _ where
   
     open import PTS.Thinning isVar 𝒜 ℛ renaming (thinning to thinningInf)
-    open import PTS.ClosureAlpha isVar 𝒜 ℛ renaming (closureAlpha to closureAlphaInf) public 
+    open import PTS.ClosureAlpha isVar 𝒜 ℛ renaming (closureAlpha to closureAlphaInf) public
     open import Data.List.Relation.Binary.Subset.Propositional.Properties
     
     thinning : ∀ {Γ Δ M A} → Γ ⊆ Δ → Δ okₛ → Γ ⊢ₛ M ∶ A → Δ ⊢ₛ M ∶ A
     thinning Γ⊆Δ Δok 𝒟 = ptsSound (thinningInf Γ⊆Δ (ptsCompleteCxt Δok) (ptsComplete 𝒟))
 
-    --closureAlpha : ∀ {Γ Δ M N A B} → Γ ≈α Δ → M ∼α N → A ∼α B → Γ ⊢ₛ M ∶ A → Δ ⊢ₛ N ∶ B
-    --closureAlpha Γ∼Δ M∼N A∼B 𝒟 = ptsSound (closureAlphaInf Γ∼Δ M∼N A∼B (ptsComplete 𝒟))
+    closureAlpha : ∀ {Γ Δ M N A B} → Γ ≈α Δ → M ∼α N → A ∼α B → Γ ⊢ₛ M ∶ A → Δ ⊢ₛ N ∶ B
+    closureAlpha Γ∼Δ M∼N A∼B 𝒟 = ptsSound (closureAlphaInf Γ∼Δ M∼N A∼B (ptsComplete 𝒟))
 
     closAlpha : ∀ {Γ M N A} → M ∼α N → Γ ⊢ₛ M ∶ A → Γ ⊢ₛ N ∶ A
     closAlpha M∼N 𝒟 = ptsSound (closureAlphaInf ∼ρs M∼N ∼ρ (ptsComplete 𝒟))
@@ -185,6 +185,19 @@ module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → �
     weakening : ∀ {Γ x s M A B} → Γ ⊢ₛ M ∶ B → x ∉ dom Γ → Γ ⊢ₛ A ∶ c s → Γ ‚ x ∶ A ⊢ₛ M ∶ B
     weakening {Γ} {x} {A = A} Γ⊢M:B x∉domΓ Γ⊢A:s = thinning (xs⊆x∷xs Γ (x , A)) (⊢cons (validCxt Γ⊢M:B) x∉domΓ Γ⊢A:s) Γ⊢M:B
 
+    infix 2 _∶_⇀ₛ_
+    _∶_⇀ₛ_ : Sub → Cxt → Cxt → Set
+    σ ∶ Γ ⇀ₛ Δ = ∀ {x A} → (x , A) ∈ Γ → Δ ⊢ₛ σ x ∶ A ∙ σ
+  
+    subComplete : ∀ {σ Γ Δ} → σ ∶ Γ ⇀ₛ Δ → σ ∶ Γ ⇀ Δ
+    subComplete sub x,A∈Γ = ptsComplete (sub x,A∈Γ)
+
+    identSub : ∀ {Γ} → Γ okₛ → ι ∶ Γ ⇀ₛ Γ ∙∙ ι
+    identSub Γok x,A∈Γ = ptsSound (identSubInf (ptsCompleteCxt Γok) x,A∈Γ)
+
+    closureSub : ∀ {Γ Δ M A σ} → σ ∶ Γ ⇀ₛ Δ → Δ okₛ → Γ ⊢ₛ M ∶ A → Δ ⊢ₛ M ∙ σ ∶ A ∙ σ
+    closureSub sub Δok Γ⊢M:A = ptsSound (closureSubInf (subComplete sub) (ptsCompleteCxt Δok) (ptsComplete Γ⊢M:A))
+  
     -- generalized inversion lemmas
 
     genAbsG : ∀ {Γ x A M C} → Γ ⊢ₛ λ[ x ∶ A ] M ∶ C

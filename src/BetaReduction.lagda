@@ -1,3 +1,4 @@
+\begin{code}
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive.Properties as StarProp
 open import Relation.Binary.Construct.Union
@@ -61,15 +62,20 @@ module BetaReduction (𝒞 : Set) {𝒱 : Set} (var : Enum 𝒱) where
   app-star-r : ∀ {M N P} → N →β*₀ P → M · N →β*₀ M · P
   app-star-r ε                 = ε 
   app-star-r (t→t' ◅ t'→β*t'')  = →·R t→t' ◅ app-star-r t'→β*t''
+\end{code}
 
-  -- inversion lemmas:
+%<*inversionmanysteplemma>
+%\begin{lemma}
+%\label{lemma:inversionManyStepProd}
+%\hfill
+\begin{code}[number=lemma:inversionManyStepProd]
+  genRedProd : ∀ {x A₁ B₁ C} → Π[ x ∶ A₁ ] B₁ →β*₀ C
+    → ∃₂ λ A₂ B₂ → C ≡ Π[ x ∶ A₂ ] B₂ × A₁ →β*₀ A₂ × B₁ →β*₀ B₂
+\end{code}
+%\end{lemma}
+%</inversionmanysteplemma>
 
-  genRedProd : ∀ {x A₁ B₁ C}
-             → Π[ x ∶ A₁ ] B₁ →β*₀ C
-             → ∃₂ λ A₂ B₂ 
-             → C ≡ Π[ x ∶ A₂ ] B₂ 
-             × A₁ →β*₀ A₂
-             × B₁ →β*₀ B₂
+\begin{code}
   genRedProd {x} {A} {B} ε = A , B , refl , ε , ε
   genRedProd (→ΠL {x} {A} {A'} {B} A→A' ◅ Π[x:A']B→*C) with genRedProd Π[x:A']B→*C
   ... | A″ , B' , refl , A'→*A″ , B→*B' = A″ , B' , refl , A→A' ◅ A'→*A″ , B→*B'
@@ -111,3 +117,4 @@ module BetaReduction (𝒞 : Set) {𝒱 : Set} (var : Enum 𝒱) where
   →β*₀⇒→β* : _→β*₀_ ⇒ _→β*_
   →β*₀⇒→β* ε = ε
   →β*₀⇒→β* (e ◅ d) = inj₂ e ◅ →β*₀⇒→β* d
+\end{code}

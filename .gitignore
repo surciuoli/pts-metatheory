@@ -4,3 +4,5 @@ src/.DS_Store
 *.agda~
 src/PTS/.DS_Store
 .DS_Store
+latex/agda.sty
+latex/BetaReduction.tex
