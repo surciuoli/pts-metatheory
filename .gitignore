@@ -6,3 +6,4 @@ src/PTS/.DS_Store
 .DS_Store
 latex/agda.sty
 latex/BetaReduction.tex
+count.sh
