@@ -1,16 +1,18 @@
 open import Stoughton.Var
 
-module Definitions (𝒞 : Set) {𝒱} (var : Enum 𝒱) where
+module Definitions (𝒞 : Set) {𝒱} (enum : Enum 𝒱) where
 
+  open Enum enum
+  
   open import Data.Product
   open import Data.Empty
   open import Relation.Nullary
-  open import Data.List.Membership.DecPropositional (Enum._≟_ var)
+  open import Data.List.Membership.DecPropositional _≟_
   
-  open import Stoughton.Syntax 𝒞 𝒱 (Enum._≟_ var)
-  open import Stoughton.Substitution 𝒞 var
-  open import Stoughton.SubstitutionLemmas 𝒞 var
-  open import Stoughton.Alpha 𝒞 var
+  open import Stoughton.Syntax 𝒞 𝒱 _≟_
+  open import Stoughton.Substitution 𝒞 enum
+  open import Stoughton.SubstitutionLemmas 𝒞 enum
+  open import Stoughton.Alpha 𝒞 enum
 
   AntiPreserves* : (Λ → Λ → Set) → Set
   AntiPreserves* r = ∀ {x M N} → x * N → r M N → x * M
