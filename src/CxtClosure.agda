@@ -26,7 +26,6 @@ module CxtClosure (𝒞 : Set) {𝒱} (var : Enum 𝒱) (_▹_ : Rel (Syntax.Λ 
   open import Stoughton.Substitution 𝒞 var
   open import Stoughton.SubstitutionLemmas 𝒞 var
   open import Stoughton.Alpha 𝒞 var
-  open import Definitions 𝒞 var
   open import Stoughton.Chi (Enum.encode var) (Enum.decode var) (Enum.inverse var)
 
   -- Rename to CxtClosure

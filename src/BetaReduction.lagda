@@ -83,7 +83,6 @@ module BetaReduction (𝒞 : Set) {𝒱 : Set} (var : Enum 𝒱) where
   ... | A' , B″ , refl , A→*A' , B'→*B″ = A' , B″ , refl , A→*A' , B→B' ◅ B'→*B″
 
   open OneStepBeta.PreservesFreshness _▹β_ βpreserves# using (∈→C-) renaming (lemma*→C⁻¹ to lemma*→β⁻¹; lemma#→C to lemma#→β) public
-  open import Definitions 𝒞 var
 
   lemma→α** : {x : 𝒱}{M N : Λ} → x * N → M →β*₀ N → x * M
   lemma→α** x*N ε = x*N

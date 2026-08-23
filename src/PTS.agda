@@ -28,7 +28,6 @@ module PTS {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) 
   open import Beta 𝒞 isVar
   open import Context 𝒱 Λ _≟_
   open import CxtClosure 𝒞 isVar _▹β_ as Red
-  open import Definitions 𝒞 isVar
   open import BetaConversion 𝒞 isVar
   open import BetaReduction 𝒞 isVar
   open import Utils

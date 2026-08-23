@@ -1,8 +1,10 @@
 import Stoughton.Syntax as Term
 open import Stoughton.Var
 
-module Beta (𝒞 : Set) {𝒱} (var : Enum 𝒱) where
+module Beta (𝒞 : Set) {𝒱} (enum : Enum 𝒱) where
 
+  open Enum enum
+  
   open import Level
   open import Data.Product
   open import Data.Nat hiding (_*_; _≟_)
@@ -15,17 +17,13 @@ module Beta (𝒞 : Set) {𝒱} (var : Enum 𝒱) where
   open import Data.List.Membership.Propositional.Properties
   open import Data.Empty
   open import Relation.Nullary
-  open import Data.List.Relation.Unary.Any
-  
-  private
-    _≟_ = Enum._≟_ var
+  open import Data.List.Relation.Unary.Any  
   
   open Term 𝒞 𝒱 _≟_
-  open import Stoughton.Substitution 𝒞 var
-  open import Stoughton.SubstitutionLemmas 𝒞 var
-  open import Stoughton.Alpha 𝒞 var
-  open import Definitions 𝒞 var
-  open import Stoughton.Chi (Enum.encode var) (Enum.decode var) (Enum.inverse var)
+  open import Stoughton.Substitution 𝒞 enum
+  open import Stoughton.SubstitutionLemmas 𝒞 enum
+  open import Stoughton.Alpha 𝒞 enum
+  open import Stoughton.Chi encode decode inverse
 
   infix 3 _▹β_
   data _▹β_ : Λ → Λ → Set where
