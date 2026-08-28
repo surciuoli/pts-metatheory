@@ -20,7 +20,7 @@ module PTS.SyntacticValidity {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 
   open import Stoughton.Syntax 𝒞 𝒱 _≟_
   open import Context 𝒱 Λ _≟_
 
-  validDecl : ∀ {Γ x A} → Γ ok → (x , A) ∈ Γ → ∃ λ s → Γ ⊢ A ∶ c s
+  validDecl : ∀ {Γ x A} → Γ ok → (x , A) ∈ Γ → ∃ λ s → Γ ⊢ A ∶ const s
   validDecl ⊢nil ()
   validDecl {.((x , A) ∷ Γ)} {x} {A} Γ,x:Aok@(⊢cons {Γ} {s = s} Γok x∉domΓ Γ⊢A:s) (here refl) =
     s , thinning Γ⊆Γ,x:A Γ,x:Aok Γ⊢A:s
@@ -33,7 +33,7 @@ module PTS.SyntacticValidity {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 
     Γ⊆Γ,y:B : Γ ⊆ (Γ ‚ y ∶ B)
     Γ⊆Γ,y:B = xs⊆x∷xs Γ (y , B)  
 
-  syntacticValidity : ∀ {Γ M A} → Γ ⊢ M ∶ A → ∃ λ s → A ≡ c s ⊎ Γ ⊢ A ∶ c s -- x A ≢ s'
+  syntacticValidity : ∀ {Γ M A} → Γ ⊢ M ∶ A → ∃ λ s → A ≡ const s ⊎ Γ ⊢ A ∶ const s
   syntacticValidity {Γ} (⊢var Γok x,A∈Γ) with validDecl Γok x,A∈Γ
   ... | s , Γ⊢A:s = s , inj₂ Γ⊢A:s
   syntacticValidity {Γ} Γ⊢s₁:s₂@(⊢sort {s₂ = s₂} _ _) = s₂ , inj₁ refl

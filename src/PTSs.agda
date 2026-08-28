@@ -12,20 +12,22 @@ open import Data.Empty
 
 open import Stoughton.Var
 
-module PTSs {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
+module PTSs {𝒞 𝒱 : Set} (enum : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
 
-  private
-    _≟_ = Enum._≟_ isVar
+  open Enum enum
   
   open import Stoughton.Syntax 𝒞 𝒱 _≟_
-  open import Stoughton.Substitution 𝒞 isVar
-  open import Stoughton.SubstitutionLemmas 𝒞 isVar
-  open import Stoughton.Alpha 𝒞 isVar
-  open import Beta 𝒞 isVar  
+  open import Stoughton.Substitution 𝒞 enum
+  open import Stoughton.SubstitutionLemmas 𝒞 enum
+  open import Stoughton.Alpha 𝒞 enum
+  open import Stoughton.Chi encode decode inverse
+  
+  open import Beta 𝒞 enum
+  open import CxtClosure 𝒞 enum _▹β_ renaming (_▸_ to _→β_)
+  open import ManyStep 𝒞 enum _▹β_ renaming (_▸*_ to _↠β_)
+  open import Conversion 𝒞 enum _▹β_ renaming (_≃_ to _≃β_)
+  
   open import Context 𝒱 Λ _≟_  
-  open import Stoughton.Chi (Enum.encode isVar) (Enum.decode isVar) (Enum.inverse isVar)  
-  open import BetaConversion 𝒞 isVar
-  open import BetaReduction 𝒞 isVar
   open import Utils
   
   infix 3 _okₛ 
@@ -37,31 +39,31 @@ module PTSs {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set)
       ⊢cons : ∀ {Γ x s A}
             → Γ okₛ
             → x ∉ dom Γ
-            → Γ ⊢ₛ A ∶ c s
+            → Γ ⊢ₛ A ∶ const s
             → Γ ‚ x ∶ A okₛ 
 
     data _⊢ₛ_∶_ (Γ : Cxt) : Λ → Λ → Set where 
       ⊢var : ∀ {x A}
            → Γ okₛ
            → (x , A) ∈ Γ
-           → Γ ⊢ₛ v x ∶ A
+           → Γ ⊢ₛ var x ∶ A
       ⊢sort : ∀ {s₁ s₂}
             → Γ okₛ
             → 𝒜 s₁ s₂
-            → Γ ⊢ₛ c s₁ ∶ c s₂
+            → Γ ⊢ₛ const s₁ ∶ const s₂
       ⊢prod : ∀ {x y s₁ s₂ s₃ A B}
             → ℛ s₁ s₂ s₃
-            → Γ ⊢ₛ A ∶ c s₁          
+            → Γ ⊢ₛ A ∶ const s₁          
             → y ∉ fv B - x
-            → Γ ‚ y ∶ A ⊢ₛ B [ x := v y ] ∶ c s₂
-            → Γ ⊢ₛ Π[ x ∶ A ] B ∶ c s₃          
+            → Γ ‚ y ∶ A ⊢ₛ B [ x := var y ] ∶ const s₂
+            → Γ ⊢ₛ Π[ x ∶ A ] B ∶ const s₃          
       ⊢abs : ∀ {x y z s₁ s₂ s₃ A B M}
            → ℛ s₁ s₂ s₃      
            → z ∉ fv M - x
            → z ∉ fv B - y
-           → Γ ⊢ₛ A ∶ c s₁
-           → Γ ‚ z ∶ A ⊢ₛ M [ x := v z ] ∶ B [ y := v z ]
-           → Γ ‚ z ∶ A ⊢ₛ B [ y := v z ] ∶ c s₂
+           → Γ ⊢ₛ A ∶ const s₁
+           → Γ ‚ z ∶ A ⊢ₛ M [ x := var z ] ∶ B [ y := var z ]
+           → Γ ‚ z ∶ A ⊢ₛ B [ y := var z ] ∶ const s₂
            → Γ ⊢ₛ λ[ x ∶ A ] M ∶ Π[ y ∶ A ] B 
       ⊢app : ∀ {x M N A B}
            → Γ ⊢ₛ M ∶ Π[ x ∶ A ] B
@@ -70,7 +72,7 @@ module PTSs {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set)
       ⊢conv : ∀ {s M A B}
             → Γ ⊢ₛ M ∶ A
             → A ≃β B
-            → Γ ⊢ₛ B ∶ c s
+            → Γ ⊢ₛ B ∶ const s
             → Γ ⊢ₛ M ∶ B
 
   validCxt : ∀ {Γ M A} → Γ ⊢ₛ M ∶ A → Γ okₛ
@@ -83,14 +85,14 @@ module PTSs {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set)
 
   -- inversion (generation) lemmas
 
-  genVar : ∀ {Γ x A} → Γ ⊢ₛ v x ∶ A → ∃ λ B → Γ okₛ × (x , B) ∈ Γ × A ≃β B
+  genVar : ∀ {Γ x A} → Γ ⊢ₛ var x ∶ A → ∃ λ B → Γ okₛ × (x , B) ∈ Γ × A ≃β B
   genVar {Γ} {x} {A} (⊢var {.x} {.A} Γok x,A∈Γ) = A , Γok , x,A∈Γ , Eq.reflexive (_∼α_ ∪ _→β_)
-  genVar {Γ} {x} {A} (⊢conv {_} {.(v x)} {C} {.A} Γ⊢x:C C≃A _) with genVar Γ⊢x:C
+  genVar {Γ} {x} {A} (⊢conv {_} {.(var x)} {C} {.A} Γ⊢x:C C≃A _) with genVar Γ⊢x:C
   ... | B , Γok , x,B∈Γ , C≃B = B , Γok , x,B∈Γ , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C≃A) C≃B
 
-  genSort : ∀ {Γ s A} → Γ ⊢ₛ c s ∶ A → ∃ λ t → Γ okₛ × 𝒜 s t × A ≃β c t
-  genSort {Γ} {s} {.(c t)} (⊢sort {.s} {t} Γok 𝒜st) = t , Γok , 𝒜st , Eq.reflexive (_∼α_ ∪ _→β_)
-  genSort {Γ} {s} {A} (⊢conv {_} {.(c s)} {C} {.A} Γ⊢s:C C≃A _) with genSort Γ⊢s:C
+  genSort : ∀ {Γ s A} → Γ ⊢ₛ const s ∶ A → ∃ λ t → Γ okₛ × 𝒜 s t × A ≃β const t
+  genSort {Γ} {s} {.(const t)} (⊢sort {.s} {t} Γok 𝒜st) = t , Γok , 𝒜st , Eq.reflexive (_∼α_ ∪ _→β_)
+  genSort {Γ} {s} {A} (⊢conv {_} {.(const s)} {C} {.A} Γ⊢s:C C≃A _) with genSort Γ⊢s:C
   ... | t , Γok , 𝒜st , C≃t = t , Γok , 𝒜st , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C≃A) C≃t
 
   genLam : ∀ {Γ x A M C} → Γ ⊢ₛ λ[ x ∶ A ] M ∶ C
@@ -98,9 +100,9 @@ module PTSs {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set)
          → ℛ s₁ s₂ s₃         
          × y ∉ fv M - x
          × y ∉ fv B - x'
-         × Γ ⊢ₛ A ∶ c s₁
-         × Γ ‚ y ∶ A ⊢ₛ M [ x := v y ] ∶ B [ x' := v y ]
-         × Γ ‚ y ∶ A ⊢ₛ B [ x' := v y ] ∶ c s₂
+         × Γ ⊢ₛ A ∶ const s₁
+         × Γ ‚ y ∶ A ⊢ₛ M [ x := var y ] ∶ B [ x' := var y ]
+         × Γ ‚ y ∶ A ⊢ₛ B [ x' := var y ] ∶ const s₂
          × C ≃β Π[ x' ∶ A ] B
   genLam (⊢abs {x} {x'} {y} {s₁} {s₂} {s₃} {A} {B} ℛs₁s₂s₃ y∉fvM-x y∉fvB-x' Γ⊢A:s₁ Γ,y:A⊢M[x=y]:B[x'=y] Γ,y:A⊢B[x'=y]:s₂) =
     s₁ , s₂ , s₃ , x' , y , B , ℛs₁s₂s₃ , y∉fvM-x , y∉fvB-x' , Γ⊢A:s₁ , Γ,y:A⊢M[x=y]:B[x'=y] , Γ,y:A⊢B[x'=y]:s₂
@@ -125,10 +127,10 @@ module PTSs {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set)
   genProd : ∀ {Γ x A B C} → Γ ⊢ₛ Π[ x ∶ A ] B ∶ C
         → ∃₄ λ s₁ s₂ s₃ y
         → ℛ s₁ s₂ s₃
-        × Γ ⊢ₛ A ∶ c s₁
+        × Γ ⊢ₛ A ∶ const s₁
         × y ∉ fv B - x
-        × Γ ‚ y ∶ A ⊢ₛ B [ x := v y ] ∶ c s₂
-        × C ≃β c s₃
+        × Γ ‚ y ∶ A ⊢ₛ B [ x := var y ] ∶ const s₂
+        × C ≃β const s₃
   genProd (⊢prod {x} {y} {s₁} {s₂} {s₃} Rs₁s₂s₃ Γ⊢A:s₁ y∉fvB-x Γ,y:A⊢B[x=y]:s₂) =
     s₁ , s₂ , s₃ , y , Rs₁s₂s₃ , Γ⊢A:s₁ , y∉fvB-x , Γ,y:A⊢B[x=y]:s₂ , Eq.reflexive (_∼α_ ∪ _→β_)        
   genProd (⊢conv Γ⊢Π[x:A]B:C C=D _) with genProd Γ⊢Π[x:A]B:C

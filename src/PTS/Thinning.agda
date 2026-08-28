@@ -43,9 +43,9 @@ module PTS.Thinning {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 
   thinning {Γ} {Δ} Γ⊆Δ Δok (⊢abs {x} {x′} {s₁} {s₂} {s₃} {A} {B} {M} ℛs₁s₂s₃ Γ⊢A:s₁ h h₀) =
     ⊢abs ℛs₁s₂s₃ Δ⊢A:s₁ goal goal₀
     where
-    Δ⊢A:s₁ : Δ ⊢ A ∶ c s₁
+    Δ⊢A:s₁ : Δ ⊢ A ∶ const s₁
     Δ⊢A:s₁ = thinning Γ⊆Δ Δok Γ⊢A:s₁
-    goal₀ : ∀ y → y ∉ dom Δ → Δ ‚ y ∶ A ⊢ B ∙ ι ‚ x′ := v y ∶ c s₂
+    goal₀ : ∀ y → y ∉ dom Δ → Δ ‚ y ∶ A ⊢ B ∙ ι ‚ x′ := var y ∶ const s₂
     goal₀ y y∉Δ = thinning Γ,y⊆Δ,y Δ,y:Aok (h₀ y y∉Γ)
       where
       Δ,y:Aok : Δ ‚ y ∶ A ok
@@ -54,7 +54,7 @@ module PTS.Thinning {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 
       y∉Γ = ⊆⇒∉ Γ⊆Δ y∉Δ
       Γ,y⊆Δ,y : (Γ ‚ y ∶ A) ⊆ (Δ ‚ y ∶ A)
       Γ,y⊆Δ,y = ∷⁺ʳ (y , A) Γ⊆Δ     
-    goal : ∀ y → y ∉ dom Δ → Δ ‚ y ∶ A ⊢ M ∙ ι ‚ x := v y ∶ B ∙ ι ‚ x′ := v y
+    goal : ∀ y → y ∉ dom Δ → Δ ‚ y ∶ A ⊢ M ∙ ι ‚ x := var y ∶ B ∙ ι ‚ x′ := var y
     goal y y∉Δ = thinning Γ,y⊆Δ,y Δ,y:Aok (h y y∉Γ)
       where
       Δ,y:Aok : Δ ‚ y ∶ A ok
@@ -71,9 +71,9 @@ module PTS.Thinning {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 
   thinning {Γ} {Δ} Γ⊆Δ Δok (⊢prod {x} {s₁} {s₂} {s₃} {A} {B} Rs₁s₂s₃ Γ⊢A:s₁ ∀y∉Γ→Γ,y⊢B[x=y]:s₂) =
     ⊢prod Rs₁s₂s₃ Δ⊢A:s₁ goal
     where
-    Δ⊢A:s₁ : Δ ⊢ A ∶ c s₁
+    Δ⊢A:s₁ : Δ ⊢ A ∶ const s₁
     Δ⊢A:s₁ = thinning Γ⊆Δ Δok Γ⊢A:s₁
-    goal : ∀ y → y ∉ dom Δ → Δ ‚ y ∶ A ⊢ B ∙ ι ‚ x := v y ∶ c s₂
+    goal : ∀ y → y ∉ dom Δ → Δ ‚ y ∶ A ⊢ B ∙ ι ‚ x := var y ∶ const s₂
     goal y y∉Δ = thinning Γ,y⊆Δ,y Δ,y:Aok (∀y∉Γ→Γ,y⊢B[x=y]:s₂ y y∉Γ)
       where
       Δ,y:Aok : Δ ‚ y ∶ A ok

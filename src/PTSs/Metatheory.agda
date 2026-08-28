@@ -9,28 +9,39 @@ open import Relation.Binary.Construct.Union
 
 open import Stoughton.Var
 
-module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → 𝒞 → Set) (ℛ : 𝒞 → 𝒞 → 𝒞 → Set) where
+module PTSs.Metatheory
+  {𝒞 𝒱 : Set}
+  (enum : Enum 𝒱)
+  (𝒜 : 𝒞 → 𝒞 → Set)
+  (ℛ : 𝒞 → 𝒞 → 𝒞 → Set)
+  where
 
-  private
-    _≟_ = Enum._≟_ isVar
+  open Enum enum
     
-  open import PTS isVar 𝒜 ℛ renaming (genProd to genProdInf; freshAsg to freshAsgInf) hiding (validCxt; genLam)
-  open import PTSs isVar 𝒜 ℛ 
-  open import PTS.SyntacticValidity isVar 𝒜 ℛ renaming (syntacticValidity to syntacticValidityInf)
-  open import PTS.ClosureSub isVar 𝒜 ℛ using (_∶_⇀_; _∙∙_)
-    renaming (closureSub to closureSubInf; subUnary to subUnarInf; unaryRen to unaryRenInf; cut to cutInf; identSub to identSubInf) public
+  open import PTS enum 𝒜 ℛ
+    renaming (genProd to genProdInf; freshAsg to freshAsgInf)
+    hiding (validCxt; genLam)
+  open import PTSs enum 𝒜 ℛ 
+  open import PTS.SyntacticValidity enum 𝒜 ℛ
+    renaming (syntacticValidity to syntacticValidityInf)
+  open import PTS.ClosureSub enum 𝒜 ℛ
+    using (_∶_⇀_; _∙∙_)
+    renaming (closureSub to closureSubInf; subUnary to subUnarInf;
+      unaryRen to unaryRenInf; cut to cutInf; identSub to identSubInf)
+    public
     
   open import Stoughton.Syntax 𝒞 𝒱 _≟_
-  open import Stoughton.Substitution 𝒞 isVar
-  open import Stoughton.SubstitutionLemmas 𝒞 isVar
-  open import Stoughton.Alpha 𝒞 isVar
-  open import Stoughton.Chi (Enum.encode isVar) (Enum.decode isVar) (Enum.inverse isVar)
+  open import Stoughton.Substitution 𝒞 enum
+  open import Stoughton.SubstitutionLemmas 𝒞 enum
+  open import Stoughton.Alpha 𝒞 enum
+  open import Stoughton.Chi encode decode inverse
   
-  open import Beta 𝒞 isVar  
+  open import Beta 𝒞 enum
+  open import Conversion 𝒞 enum _▹β_ as Conv renaming (_≃_ to _≃β_)
+  open import ManyStep 𝒞 enum _▹β_ renaming (_▸*_ to _↠β_)
+
   open import Context 𝒱 Λ _≟_
-  open import Context.Properties 𝒞 isVar  
-  open import BetaConversion 𝒞 isVar
-  open import BetaReduction 𝒞 isVar
+  open import Context.Properties 𝒞 enum  
   open import Utils
 
   ptsSoundCxt : ∀ {Γ} → Γ ok → Γ okₛ
@@ -41,7 +52,9 @@ module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → �
 
   ptsSound (⊢sort Γok As₁s₂) = ⊢sort (ptsSoundCxt Γok) As₁s₂
   ptsSound (⊢var Γok x,A∈Γ) = ⊢var (ptsSoundCxt Γok) x,A∈Γ
-  ptsSound {Γ} Γ⊢Π[x:A]B:s₃@(⊢prod {x} {s₁} {s₂} {s₃} {A} {B} Rs₁s₂s₃ Γ⊢A:s₁ ∀y→Γ,y:A⊢B[x=y]:s₂) =
+  ptsSound {Γ} Γ⊢Π[x:A]B:s₃@(⊢prod {x} {s₁} {s₂} {s₃} {A} {B} Rs₁s₂s₃ Γ⊢A:s₁
+    ∀y→Γ,y:A⊢B[x=y]:s₂)
+    =
     ⊢prod Rs₁s₂s₃ (ptsSound Γ⊢A:s₁) y∉fvB-x (ptsSound (∀y→Γ,y:A⊢B[x=y]:s₂ y y∉domΓ))
     where
     y : 𝒱
@@ -50,7 +63,9 @@ module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → �
     y∉domΓ = Xpfresh (dom Γ)
     y∉fvB-x : y ∉ fv B - x
     y∉fvB-x = c∉xs++ys→c∉ys {xs = fv A} (c∉xs++ys→c∉xs (freshAsgInf y∉domΓ Γ⊢Π[x:A]B:s₃))
-  ptsSound {Γ} Γ⊢λ[x:A]M:Π[y:A]B@(⊢abs {x} {y} {s₁} {s₂} {s₃} {A} {B} {M} ℛs₁s₂s₃ Γ⊢A:s₁ ∀z→Γ,z:A⊢M[x=z]:B[y=z] ∀z→Γ,z:A⊢B[y=z]:s₂) =
+  ptsSound {Γ} Γ⊢λ[x:A]M:Π[y:A]B@(⊢abs {x} {y} {s₁} {s₂} {s₃} {A} {B} {M} ℛs₁s₂s₃ Γ⊢A:s₁
+    ∀z→Γ,z:A⊢M[x=z]:B[y=z] ∀z→Γ,z:A⊢B[y=z]:s₂)
+    =
     ⊢abs
         ℛs₁s₂s₃
         z∉fvM-x
@@ -66,7 +81,8 @@ module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → �
     z∉fvM-x : z ∉ fv M - x
     z∉fvM-x = c∉xs++ys→c∉ys {xs = fv A} (c∉xs++ys→c∉xs (freshAsgInf z∉domΓ Γ⊢λ[x:A]M:Π[y:A]B))
     z∉fvB-y : z ∉ fv B - y
-    z∉fvB-y = c∉xs++ys→c∉ys {xs = fv A} (c∉xs++ys→c∉ys {xs = fv (λ[ x ∶ A ] M)} (freshAsgInf z∉domΓ Γ⊢λ[x:A]M:Π[y:A]B))
+    z∉fvB-y = c∉xs++ys→c∉ys {xs = fv A}
+      (c∉xs++ys→c∉ys {xs = fv (λ[ x ∶ A ] M)} (freshAsgInf z∉domΓ Γ⊢λ[x:A]M:Π[y:A]B))
   ptsSound (⊢app Γ⊢M:Π[x:A]B Γ⊢N:A _) = ⊢app (ptsSound Γ⊢M:Π[x:A]B) (ptsSound Γ⊢N:A)
   ptsSound (⊢conv Γ⊢M:A A=B Γ⊢B:s) = ⊢conv (ptsSound Γ⊢M:A) A=B (ptsSound Γ⊢B:s)
 
@@ -78,46 +94,55 @@ module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → �
 
   ptsComplete (⊢sort Γok As₁s₂) = ⊢sort (ptsCompleteCxt Γok) As₁s₂
   ptsComplete (⊢var Γok x,A∈Γ) = ⊢var (ptsCompleteCxt Γok) x,A∈Γ
-  ptsComplete {Γ} (⊢prod {x} {y} {s₁} {s₂} {s₃} {A} {B} Rs₁s₂s₃ Γ⊢A:s₁ y∉fvB-x Γ,y:A⊢B[x=y]:s₂) =
+  ptsComplete {Γ} (⊢prod {x} {y} {s₁} {s₂} {s₃} {A} {B} Rs₁s₂s₃ Γ⊢A:s₁ y∉fvB-x
+    Γ,y:A⊢B[x=y]:s₂)
+    =
     ⊢prod Rs₁s₂s₃ (ptsComplete Γ⊢A:s₁) goal
     where
-    goal : ∀ y' → y' ∉ dom Γ → Γ ‚ y' ∶ A ⊢ B [ x := v y' ] ∶ c s₂
+    goal : ∀ y' → y' ∉ dom Γ → Γ ‚ y' ∶ A ⊢ B [ x := var y' ] ∶ const s₂
     goal y' y'∉domΓ = Γ‚y':A⊢B[x=y']:s₂
       where
-      Γ‚y:A⊢B[x=y]:s₂ : Γ ‚ y ∶ A ⊢ B [ x := v y ] ∶ c s₂
+      Γ‚y:A⊢B[x=y]:s₂ : Γ ‚ y ∶ A ⊢ B [ x := var y ] ∶ const s₂
       Γ‚y:A⊢B[x=y]:s₂ = ptsComplete Γ,y:A⊢B[x=y]:s₂
-      Γ‚y':A⊢B[x=y][y=y']:s₂ : Γ ‚ y' ∶ A ⊢ B [ x := v y ] [ y := v y' ] ∶ c s₂
+      Γ‚y':A⊢B[x=y][y=y']:s₂ : Γ ‚ y' ∶ A ⊢ B [ x := var y ] [ y := var y' ] ∶ const s₂
       Γ‚y':A⊢B[x=y][y=y']:s₂ = unaryRenInf y'∉domΓ Γ‚y:A⊢B[x=y]:s₂ 
-      Γ‚y':A⊢B[x=y']:s₂ : Γ ‚ y' ∶ A ⊢ B [ x := v y' ] ∶ c s₂
-      Γ‚y':A⊢B[x=y']:s₂ = subst (λ C → Γ ‚ y' ∶ A ⊢ C ∶ c s₂) (sym (composRenUpd {x} {y} {B} y∉fvB-x)) Γ‚y':A⊢B[x=y][y=y']:s₂   
-  ptsComplete {Γ} h@(⊢abs {x} {y} {z} {s₁} {s₂} {s₃} {A} {B} {M} ℛs₁s₂s₃ z∉fvM-x z∉fvB-y Γ⊢A:s₁ Γ,z:A⊢M[x=z]:B[y=z] Γ,z:A⊢B[y=z]:s₂) =
+      Γ‚y':A⊢B[x=y']:s₂ : Γ ‚ y' ∶ A ⊢ B [ x := var y' ] ∶ const s₂
+      Γ‚y':A⊢B[x=y']:s₂ =
+        subst (λ C → Γ ‚ y' ∶ A ⊢ C ∶ const s₂)
+          (sym (composRenUpd {x} {y} {B} y∉fvB-x)) Γ‚y':A⊢B[x=y][y=y']:s₂   
+  ptsComplete {Γ} h@(⊢abs {x} {y} {z} {s₁} {s₂} {s₃} {A} {B} {M}
+    ℛs₁s₂s₃ z∉fvM-x z∉fvB-y Γ⊢A:s₁ Γ,z:A⊢M[x=z]:B[y=z] Γ,z:A⊢B[y=z]:s₂)
+    =
     ⊢abs ℛs₁s₂s₃ (ptsComplete Γ⊢A:s₁) goal2 goal
     where    
-    goal2 : ∀ z' → z' ∉ dom Γ → Γ ‚ z' ∶ A ⊢ M [ x := v z' ] ∶ B [ y := v z' ] 
+    goal2 : ∀ z' → z' ∉ dom Γ → Γ ‚ z' ∶ A ⊢ M [ x := var z' ] ∶ B [ y := var z' ] 
     goal2 z' z'∉domΓ = Γ‚z':A⊢M[x=z']:B[y=z']
       where
-      Γ‚z:A⊢M[x=z]:B[y=z] : Γ ‚ z ∶ A ⊢ M [ x := v z ] ∶ B [ y := v z ] 
+      Γ‚z:A⊢M[x=z]:B[y=z] : Γ ‚ z ∶ A ⊢ M [ x := var z ] ∶ B [ y := var z ] 
       Γ‚z:A⊢M[x=z]:B[y=z] = ptsComplete Γ,z:A⊢M[x=z]:B[y=z]
-      Γ‚z':A⊢M[x=z][z=z']:B[y=z][z=z'] : Γ ‚ z' ∶ A ⊢ M [ x := v z ] [ z := v z' ] ∶ B [ y := v z ] [ z := v z' ] 
+      Γ‚z':A⊢M[x=z][z=z']:B[y=z][z=z'] : Γ ‚ z' ∶ A ⊢ M [ x := var z ] [ z := var z' ] ∶ B [ y := var z ] [ z := var z' ] 
       Γ‚z':A⊢M[x=z][z=z']:B[y=z][z=z'] = unaryRenInf z'∉domΓ Γ‚z:A⊢M[x=z]:B[y=z]
-      Γ‚z':A⊢M[x=z']:B[y=z'] : Γ ‚ z' ∶ A ⊢ M [ x := v z' ] ∶ B [ y := v z' ] 
+      Γ‚z':A⊢M[x=z']:B[y=z'] : Γ ‚ z' ∶ A ⊢ M [ x := var z' ] ∶ B [ y := var z' ] 
       Γ‚z':A⊢M[x=z']:B[y=z'] =
         subst₂
           (λ N C → Γ ‚ z' ∶ A ⊢ N ∶ C)
           (sym (composRenUpd {x} {z} {M} z∉fvM-x))
           (sym (composRenUpd {y} {z} {B} z∉fvB-y))
           Γ‚z':A⊢M[x=z][z=z']:B[y=z][z=z']
-    goal : ∀ z' → z' ∉ dom Γ → Γ ‚ z' ∶ A ⊢ B [ y := v z' ] ∶ c s₂
+    goal : ∀ z' → z' ∉ dom Γ → Γ ‚ z' ∶ A ⊢ B [ y := var z' ] ∶ const s₂
     goal z' z'∉domΓ = Γ‚z':A⊢B[y=z']:s₂
       where
-      Γ‚z:A⊢B[y=z]:s₂ : Γ ‚ z ∶ A ⊢ B [ y := v z ] ∶ c s₂
+      Γ‚z:A⊢B[y=z]:s₂ : Γ ‚ z ∶ A ⊢ B [ y := var z ] ∶ const s₂
       Γ‚z:A⊢B[y=z]:s₂ = ptsComplete Γ,z:A⊢B[y=z]:s₂
-      Γ‚z':A⊢B[y=z][z=z']:s₂ : Γ ‚ z' ∶ A ⊢ B [ y := v z ] [ z := v z' ] ∶ c s₂
+      Γ‚z':A⊢B[y=z][z=z']:s₂ : Γ ‚ z' ∶ A ⊢ B [ y := var z ] [ z := var z' ] ∶ const s₂
       Γ‚z':A⊢B[y=z][z=z']:s₂ = unaryRenInf z'∉domΓ Γ‚z:A⊢B[y=z]:s₂ 
-      Γ‚z':A⊢B[y=z']:s₂ : Γ ‚ z' ∶ A ⊢ B [ y := v z' ] ∶ c s₂
-      Γ‚z':A⊢B[y=z']:s₂ = subst (λ C → Γ ‚ z' ∶ A ⊢ C ∶ c s₂) (sym (composRenUpd {y} {z} {B} z∉fvB-y)) Γ‚z':A⊢B[y=z][z=z']:s₂          
+      Γ‚z':A⊢B[y=z']:s₂ : Γ ‚ z' ∶ A ⊢ B [ y := var z' ] ∶ const s₂
+      Γ‚z':A⊢B[y=z']:s₂ =
+        subst (λ C → Γ ‚ z' ∶ A ⊢ C ∶ const s₂)
+          (sym (composRenUpd {y} {z} {B} z∉fvB-y)) Γ‚z':A⊢B[y=z][z=z']:s₂          
       
-  ptsComplete {Γ} (⊢app {x} {M} {N} {A} {B} Γ⊢ₛM:Π[x:A]B Γ⊢ₛN:A) with syntacticValidityInf Γ⊢M:Π[x:A]B
+  ptsComplete {Γ} (⊢app {x} {M} {N} {A} {B} Γ⊢ₛM:Π[x:A]B Γ⊢ₛN:A)
+    with syntacticValidityInf Γ⊢M:Π[x:A]B
     where
     Γ⊢M:Π[x:A]B : Γ ⊢ M ∶ Π[ x ∶ A ] B 
     Γ⊢M:Π[x:A]B = ptsComplete Γ⊢ₛM:Π[x:A]B    
@@ -133,15 +158,17 @@ module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → �
     z = X' (dom Γ)
     z∉Γ : z ∉ dom Γ
     z∉Γ = Xpfresh (dom Γ)
-    Γ,z:A⊢B[x=z]:s : ∃ λ s → Γ ‚ z ∶ A ⊢ B [ x := v z ] ∶ c s
+    Γ,z:A⊢B[x=z]:s : ∃ λ s → Γ ‚ z ∶ A ⊢ B [ x := var z ] ∶ const s
     Γ,z:A⊢B[x=z]:s with genProdInf Γ⊢Π[x:A]B:s
     ... | _ , s , _ , _ , _ , h , _ = s , h z z∉Γ 
     z∉fvB-x : z ∉ fv B - x
     z∉fvB-x = c∉xs++ys→c∉ys (c∉xs++ys→c∉ys {xs = fv M} (freshAsgInf z∉Γ Γ⊢M:Π[x:A]B))
-    B[x=z][z=N]=B[x=N] : B [ x := v z ] [ z := N ] ≡ B [ x := N ]
+    B[x=z][z=N]=B[x=N] : B [ x := var z ] [ z := N ] ≡ B [ x := N ]
     B[x=z][z=N]=B[x=N] = sym (composRenUpd {x} {z} {B} {N} z∉fvB-x)
-    Γ⊢B[x=N]:s : ∃ λ s → Γ ⊢ B [ x := N ] ∶ c s
-    Γ⊢B[x=N]:s = s' , subst (λ X → Γ ⊢ X ∶ c s') B[x=z][z=N]=B[x=N] (cutInf (proj₂ Γ,z:A⊢B[x=z]:s) Γ⊢N:A)
+    Γ⊢B[x=N]:s : ∃ λ s → Γ ⊢ B [ x := N ] ∶ const s
+    Γ⊢B[x=N]:s =
+      s' ,
+      subst (λ X → Γ ⊢ X ∶ const s') B[x=z][z=N]=B[x=N] (cutInf (proj₂ Γ,z:A⊢B[x=z]:s) Γ⊢N:A)
       where
       s' : 𝒞
       s' = proj₁ Γ,z:A⊢B[x=z]:s
@@ -156,8 +183,8 @@ module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → �
 
   module _ where
   
-    open import PTS.Thinning isVar 𝒜 ℛ renaming (thinning to thinningInf)
-    open import PTS.ClosureAlpha isVar 𝒜 ℛ renaming (closureAlpha to closureAlphaInf) public
+    open import PTS.Thinning enum 𝒜 ℛ renaming (thinning to thinningInf)
+    open import PTS.ClosureAlpha enum 𝒜 ℛ renaming (closureAlpha to closureAlphaInf) public
     open import Data.List.Relation.Binary.Subset.Propositional.Properties
     
     thinning : ∀ {Γ Δ M A} → Γ ⊆ Δ → Δ okₛ → Γ ⊢ₛ M ∶ A → Δ ⊢ₛ M ∶ A
@@ -172,18 +199,20 @@ module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → �
     cut :  ∀ {Γ M N A B x} → Γ ‚ x ∶ A ⊢ₛ M ∶ B → Γ ⊢ₛ N ∶ A → Γ ⊢ₛ M [ x := N ] ∶ B [ x := N ]
     cut 𝒟 ℰ = ptsSound (cutInf (ptsComplete 𝒟) (ptsComplete ℰ))
 
-    unaryRen : ∀ {Γ x y A M B} → y ∉ dom Γ → Γ ‚ x ∶ A ⊢ₛ M ∶ B → Γ ‚ y ∶ A ⊢ₛ M [ x := v y ] ∶ B [ x := v y ]
+    unaryRen : ∀ {Γ x y A M B} → y ∉ dom Γ → Γ ‚ x ∶ A ⊢ₛ M ∶ B
+             → Γ ‚ y ∶ A ⊢ₛ M [ x := var y ] ∶ B [ x := var y ]
     unaryRen y∉domΓ 𝒟 = ptsSound (unaryRenInf y∉domΓ (ptsComplete 𝒟))
     
-    syntacticValidity : ∀ {Γ M A} → Γ ⊢ₛ M ∶ A → ∃ λ s → A ≡ c s ⊎ Γ ⊢ₛ A ∶ c s
+    syntacticValidity : ∀ {Γ M A} → Γ ⊢ₛ M ∶ A → ∃ λ s → A ≡ const s ⊎ Γ ⊢ₛ A ∶ const s
     syntacticValidity 𝒟 with syntacticValidityInf (ptsComplete 𝒟)
     ... | s , ℰ = s , Data.Sum.map (λ x → x) ptsSound ℰ
 
     freshAsg : ∀ {Γ M A w} → w ∉ dom Γ → Γ ⊢ₛ M ∶ A → w # M · A
     freshAsg w∉domΓ 𝒟 = freshAsgInf w∉domΓ (ptsComplete 𝒟)
 
-    weakening : ∀ {Γ x s M A B} → Γ ⊢ₛ M ∶ B → x ∉ dom Γ → Γ ⊢ₛ A ∶ c s → Γ ‚ x ∶ A ⊢ₛ M ∶ B
-    weakening {Γ} {x} {A = A} Γ⊢M:B x∉domΓ Γ⊢A:s = thinning (xs⊆x∷xs Γ (x , A)) (⊢cons (validCxt Γ⊢M:B) x∉domΓ Γ⊢A:s) Γ⊢M:B
+    weakening : ∀ {Γ x s M A B} → Γ ⊢ₛ M ∶ B → x ∉ dom Γ → Γ ⊢ₛ A ∶ const s → Γ ‚ x ∶ A ⊢ₛ M ∶ B
+    weakening {Γ} {x} {A = A} Γ⊢M:B x∉domΓ Γ⊢A:s =
+      thinning (xs⊆x∷xs Γ (x , A)) (⊢cons (validCxt Γ⊢M:B) x∉domΓ Γ⊢A:s) Γ⊢M:B
 
     infix 2 _∶_⇀ₛ_
     _∶_⇀ₛ_ : Sub → Cxt → Cxt → Set
@@ -203,51 +232,54 @@ module PTSs.Metatheory {𝒞 𝒱 : Set} (isVar : Enum 𝒱) (𝒜 : 𝒞 → �
     genAbsG : ∀ {Γ x A M C} → Γ ⊢ₛ λ[ x ∶ A ] M ∶ C
            → ∃₅ λ s₁ s₂ s₃ x' B
            → ℛ s₁ s₂ s₃         
-           × Γ ⊢ₛ A ∶ c s₁
-           × (∀ {y} → y ∉ dom Γ → Γ ‚ y ∶ A ⊢ₛ M [ x := v y ] ∶ B [ x' := v y ])
-           × (∀ {y} → y ∉ dom Γ → Γ ‚ y ∶ A ⊢ₛ B [ x' := v y ] ∶ c s₂)
+           × Γ ⊢ₛ A ∶ const s₁
+           × (∀ {y} → y ∉ dom Γ → Γ ‚ y ∶ A ⊢ₛ M [ x := var y ] ∶ B [ x' := var y ])
+           × (∀ {y} → y ∉ dom Γ → Γ ‚ y ∶ A ⊢ₛ B [ x' := var y ] ∶ const s₂)
            × C ≃β Π[ x' ∶ A ] B
     genAbsG {Γ} (⊢abs {x} {x'} {y} {s₁} {s₂} {s₃} {A} {B} {M} ℛs₁s₂s₃ y∉fvM-x y∉fvB-x' Γ⊢A:s₁ Γ,y:A⊢M[x=y]:B[x'=y] Γ,y:A⊢B[x'=y]:s₂) =
-      s₁ , s₂ , s₃ , x' , B , ℛs₁s₂s₃ , Γ⊢A:s₁ , goal₁ , goal₂ , Eq.reflexive (_∼α_ ∪ _→β_)
+      s₁ , s₂ , s₃ , x' , B , ℛs₁s₂s₃ , Γ⊢A:s₁ , goal₁ , goal₂ , Eq.reflexive _
       where
-      goal₁ : ∀ {y′} → y′ ∉ dom Γ → Γ ‚ y′ ∶ A ⊢ₛ M [ x := v y′ ] ∶ B [ x' := v y′ ]
+      goal₁ : ∀ {y′} → y′ ∉ dom Γ → Γ ‚ y′ ∶ A ⊢ₛ M [ x := var y′ ] ∶ B [ x' := var y′ ]
       goal₁ {y′} y′∉domΓ = Γ‚y′:A⊢M[x=y′]:B[x'=y′]
         where
-        Γ‚y′:A⊢M[x=y][y=y′]:B[x'=y][y=y′] : Γ ‚ y′ ∶ A ⊢ₛ M [ x := v y ] [ y := v y′ ] ∶ B [ x' := v y ] [ y := v y′ ] 
+        Γ‚y′:A⊢M[x=y][y=y′]:B[x'=y][y=y′] : Γ ‚ y′ ∶ A ⊢ₛ M [ x := var y ] [ y := var y′ ] ∶ B [ x' := var y ] [ y := var y′ ] 
         Γ‚y′:A⊢M[x=y][y=y′]:B[x'=y][y=y′] = unaryRen y′∉domΓ Γ,y:A⊢M[x=y]:B[x'=y]
-        Γ‚y′:A⊢M[x=y′]:B[x'=y′] : Γ ‚ y′ ∶ A ⊢ₛ M [ x := v y′ ] ∶ B [ x' := v y′ ] 
+        Γ‚y′:A⊢M[x=y′]:B[x'=y′] : Γ ‚ y′ ∶ A ⊢ₛ M [ x := var y′ ] ∶ B [ x' := var y′ ] 
         Γ‚y′:A⊢M[x=y′]:B[x'=y′] =
           subst₂ (λ N C → Γ ‚ y′ ∶ A ⊢ₛ N ∶ C)
             (sym (composRenUpd {x} {y} {M} y∉fvM-x))
             (sym (composRenUpd {x'} {y} {B} y∉fvB-x'))
             Γ‚y′:A⊢M[x=y][y=y′]:B[x'=y][y=y′]
-      goal₂ : ∀ {y′} → y′ ∉ dom Γ → Γ ‚ y′ ∶ A ⊢ₛ B [ x' := v y′ ] ∶ c s₂
+      goal₂ : ∀ {y′} → y′ ∉ dom Γ → Γ ‚ y′ ∶ A ⊢ₛ B [ x' := var y′ ] ∶ const s₂
       goal₂ {y′} y′∉domΓ = Γ‚y′:A⊢B[x'=y′]:s₂
         where
-        Γ‚y′:A⊢B[x'=y][y=y′]:s₂ : Γ ‚ y′ ∶ A ⊢ₛ B [ x' := v y ] [ y := v y′ ] ∶ c s₂
+        Γ‚y′:A⊢B[x'=y][y=y′]:s₂ : Γ ‚ y′ ∶ A ⊢ₛ B [ x' := var y ] [ y := var y′ ] ∶ const s₂
         Γ‚y′:A⊢B[x'=y][y=y′]:s₂ = unaryRen y′∉domΓ Γ,y:A⊢B[x'=y]:s₂
-        Γ‚y′:A⊢B[x'=y′]:s₂ : Γ ‚ y′ ∶ A ⊢ₛ B [ x' := v y′ ] ∶ c s₂
-        Γ‚y′:A⊢B[x'=y′]:s₂ = subst (λ C → Γ ‚ y′ ∶ A ⊢ₛ C ∶ c s₂) (sym (composRenUpd {x'} {y} {B} y∉fvB-x')) Γ‚y′:A⊢B[x'=y][y=y′]:s₂   
+        Γ‚y′:A⊢B[x'=y′]:s₂ : Γ ‚ y′ ∶ A ⊢ₛ B [ x' := var y′ ] ∶ const s₂
+        Γ‚y′:A⊢B[x'=y′]:s₂ = subst (λ C → Γ ‚ y′ ∶ A ⊢ₛ C ∶ const s₂) (sym (composRenUpd {x'} {y} {B} y∉fvB-x')) Γ‚y′:A⊢B[x'=y][y=y′]:s₂   
     genAbsG (⊢conv Γ⊢λ[x:A]M:C C≃D _) with genAbsG Γ⊢λ[x:A]M:C
     ... |  s₁ , s₂ ,  s₃ , x' , B , ℛs₁s₂s₃ , Γ⊢A:s₁ , h₁ , h₂ , D≃Π[x':A]B =
-      s₁ , s₂ , s₃ , x' , B , ℛs₁s₂s₃ , Γ⊢A:s₁ , h₁ , h₂ , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C≃D) D≃Π[x':A]B
+      s₁ , s₂ , s₃ , x' , B , ℛs₁s₂s₃ , Γ⊢A:s₁ , h₁ , h₂ ,
+      transitive _ (Eq.symmetric _ C≃D) D≃Π[x':A]B
 
     genProdG : ∀ {Γ x A B C} → Γ ⊢ₛ Π[ x ∶ A ] B ∶ C
           → ∃₃ λ s₁ s₂ s₃
           → ℛ s₁ s₂ s₃
-          × Γ ⊢ₛ A ∶ c s₁        
-          × (∀ {y} → y ∉ dom Γ → Γ ‚ y ∶ A ⊢ₛ B [ x := v y ] ∶ c s₂)
-          × C ≃β c s₃
+          × Γ ⊢ₛ A ∶ const s₁        
+          × (∀ {y} → y ∉ dom Γ → Γ ‚ y ∶ A ⊢ₛ B [ x := var y ] ∶ const s₂)
+          × C ≃β const s₃
     genProdG {Γ} (⊢prod {x} {y} {s₁} {s₂} {s₃} {A} {B} Rs₁s₂s₃ Γ⊢A:s₁ y∉fvB-x Γ,y:A⊢B[x=y]:s₂) =
-      s₁ , s₂ , s₃ , Rs₁s₂s₃ , Γ⊢A:s₁ , goal , Eq.reflexive (_∼α_ ∪ _→β_)
+      s₁ , s₂ , s₃ , Rs₁s₂s₃ , Γ⊢A:s₁ , goal , Eq.reflexive _
       where
-      goal : ∀ {y′} → y′ ∉ dom Γ → Γ ‚ y′ ∶ A ⊢ₛ B [ x := v y′ ] ∶ c s₂
+      goal : ∀ {y′} → y′ ∉ dom Γ → Γ ‚ y′ ∶ A ⊢ₛ B [ x := var y′ ] ∶ const s₂
       goal {y′} y′∉domΓ = Γ‚y′:A⊢B[x=y′]:s₂
         where
-        Γ‚y′:A⊢B[x=y][y=y′]:s₂ : Γ ‚ y′ ∶ A ⊢ₛ B [ x := v y ] [ y := v y′ ] ∶ c s₂
+        Γ‚y′:A⊢B[x=y][y=y′]:s₂ : Γ ‚ y′ ∶ A ⊢ₛ B [ x := var y ] [ y := var y′ ] ∶ const s₂
         Γ‚y′:A⊢B[x=y][y=y′]:s₂ = unaryRen y′∉domΓ Γ,y:A⊢B[x=y]:s₂
-        Γ‚y′:A⊢B[x=y′]:s₂ : Γ ‚ y′ ∶ A ⊢ₛ B [ x := v y′ ] ∶ c s₂
-        Γ‚y′:A⊢B[x=y′]:s₂ = subst (λ C → Γ ‚ y′ ∶ A ⊢ₛ C ∶ c s₂) (sym (composRenUpd {x} {y} {B} y∉fvB-x)) Γ‚y′:A⊢B[x=y][y=y′]:s₂   
+        Γ‚y′:A⊢B[x=y′]:s₂ : Γ ‚ y′ ∶ A ⊢ₛ B [ x := var y′ ] ∶ const s₂
+        Γ‚y′:A⊢B[x=y′]:s₂ =
+          subst (λ C → Γ ‚ y′ ∶ A ⊢ₛ C ∶ const s₂) (sym (composRenUpd {x} {y} {B} y∉fvB-x))
+            Γ‚y′:A⊢B[x=y][y=y′]:s₂   
     genProdG (⊢conv Γ⊢Π[x:A]B:C C=D _) with genProdG Γ⊢Π[x:A]B:C
     ... | s₁ , s₂ , s₃ , Rs₁s₂s₃ , h₁ , h₂ , C=𝒰 =
-      s₁ , s₂ , s₃ , Rs₁s₂s₃ , h₁ , h₂ , transitive (_∼α_ ∪ _→β_) (Eq.symmetric (_∼α_ ∪ _→β_) C=D) C=𝒰 
+      s₁ , s₂ , s₃ , Rs₁s₂s₃ , h₁ , h₂ , transitive _ (Eq.symmetric _ C=D) C=𝒰 

@@ -1,4 +1,4 @@
 name: pts-metatheory
-depend: standard-library-1.7.1 stoughton-pi
+depend: standard-library-1.7.1 stoughton-pi conversion-pi
 include: src
 
