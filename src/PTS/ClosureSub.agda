@@ -40,7 +40,7 @@ module PTS.ClosureSub
   open import Beta 𝒞 enum
   open import Conversion 𝒞 enum _▹β_ as Conv renaming (_≃_ to _≃β_)
 
-  open Conv.CompatSub βpreserves# compat∙β
+  open Conv.CompatSub β⁻¹preserves* compat∙β
 
   open PreR ≈-preorder∼
 
